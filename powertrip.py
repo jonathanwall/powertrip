@@ -55,8 +55,9 @@ class PowerTrip(commands.Cog):
     @stream.after_loop
     async def after_stream(self):
         if not self.stream.is_being_cancelled():
-            self.channel.send("Stream error. Trying again in five minutes.")
-            sleep(300)
+            await self.channel.purge()
+            await self.channel.send("Stream error. Trying again in five minutes.")
+            await sleep(300)
             self.stream.restart()
 
 
