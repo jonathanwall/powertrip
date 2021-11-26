@@ -93,6 +93,7 @@ class ApproveButton(discord.ui.Button):
 
     async def callback(self, interaction):
         await self.item.mod.approve()
+        await interaction.message.delete()
 
 
 class BanButton(discord.ui.Button):
@@ -107,6 +108,7 @@ class BanButton(discord.ui.Button):
         self.duration = duration
 
     async def callback(self, interaction):
+        await self.item.mod.remove()
         ban_options = {
             "ban_context": self.item.name,
             "ban_message": f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})",
@@ -115,6 +117,7 @@ class BanButton(discord.ui.Button):
         if self.duration:
             ban_options["duration"] = self.duration
         await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
+        await interaction.message.delete()
 
 
 class ReasonButton(discord.ui.Button):
@@ -130,6 +133,7 @@ class ReasonButton(discord.ui.Button):
         await self.post.mod.send_removal_message(
             self.reason.message, title=self.reason.title, type="private"
         )
+        await interaction.message.delete()
 
 
 def embed(item):
