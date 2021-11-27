@@ -171,8 +171,11 @@ def embed(item):
         embed["title"] = item.title[:256]
         if item.selftext:
             embed["description"] = item.selftext[:4096]
+
         if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
             embed["image"] = {"url": item.url}
+        elif "imgur.com" in item.url:
+            embed["image"] = {"url": item.url + ".jpg"}
         elif hasattr(item, "media_metadata"):
             try:
                 embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
