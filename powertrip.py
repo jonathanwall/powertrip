@@ -33,7 +33,10 @@ class PowerTrip(commands.Cog):
 
         for item_id in discord:
             if item_id not in reddit:
-                await discord[item_id].delete()
+                try:
+                    await discord[item_id].delete()
+                except discord.errors.NotFound:
+                    pass
             else:
                 del reddit[item_id]
 
@@ -69,11 +72,11 @@ class ItemView(discord.ui.View):
     async def add_buttons(self):
         self.add_item(ApproveButton(self.item))
         if isinstance(self.item, submission.Submission):
-            await self.add_post_buttons()
+            await self.add_reason_buttons()
         if isinstance(self.item, comment.Comment):
             self.add_ban_buttons()
 
-    async def add_post_buttons(self):
+    async def add_reason_buttons(self):
         async for reason in self.item.subreddit.mod.removal_reasons:
             self.add_item(ReasonButton(self.item, reason))
 
@@ -94,7 +97,10 @@ class ApproveButton(discord.ui.Button):
 
     async def callback(self, interaction):
         await self.item.mod.approve()
-        await interaction.message.delete()
+        try:
+            await interaction.message.delete()
+        except discord.errors.NotFound:
+            pass
 
 
 class BanButton(discord.ui.Button):
@@ -118,7 +124,10 @@ class BanButton(discord.ui.Button):
         if self.duration:
             ban_options["duration"] = self.duration
         await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
-        await interaction.message.delete()
+        try:
+            await interaction.message.delete()
+        except discord.errors.NotFound:
+            pass
 
 
 class ReasonButton(discord.ui.Button):
@@ -134,7 +143,10 @@ class ReasonButton(discord.ui.Button):
         await self.post.mod.send_removal_message(
             self.reason.message, title=self.reason.title, type="private"
         )
-        await interaction.message.delete()
+        try:
+            await interaction.message.delete()
+        except discord.errors.NotFound:
+            pass
 
 
 def embed(item):
