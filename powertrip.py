@@ -81,10 +81,11 @@ class ItemView(discord.ui.View):
             self.add_item(ReasonButton(self.item, reason))
 
     def add_ban_buttons(self):
-        if os.environ["pt_ban_durations"]:
-            durations = os.environ["pt_ban_durations"].split(",")
-        else:
-            durations = [1, 3, 7, 30]
+        durations = (
+            os.environ["pt_ban_durations"].split(",")
+            if "pt_ban_durations" in os.environ
+            else [2, 4, 8]
+        )
         durations += [None]
         for duration in durations:
             self.add_item(BanButton(comment, duration))
@@ -173,7 +174,10 @@ def embed(item):
         if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
             embed["image"] = {"url": item.url}
         elif hasattr(item, "media_metadata"):
-            embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
+            try:
+                embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
+            except KeyError:
+                pass
 
     return discord.Embed.from_dict(embed)
 
