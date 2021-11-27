@@ -71,6 +71,7 @@ class ItemView(discord.ui.View):
 
     async def add_buttons(self):
         self.add_item(ApproveButton(self.item))
+        self.add_item(RemoveButton(self.item))
         if isinstance(self.item, submission.Submission):
             await self.add_reason_buttons()
         if isinstance(self.item, comment.Comment):
@@ -98,6 +99,19 @@ class ApproveButton(discord.ui.Button):
 
     async def callback(self, interaction):
         await self.item.mod.approve()
+        try:
+            await interaction.message.delete()
+        except discord.errors.NotFound:
+            pass
+
+
+class RemoveButton(discord.ui.Button):
+    def __init__(self, item):
+        super().__init__(label="Remove", style=discord.enums.ButtonStyle.grey)
+        self.item = item
+
+    async def callback(self, interaction):
+        await self.item.mod.remove()
         try:
             await interaction.message.delete()
         except discord.errors.NotFound:
@@ -133,7 +147,7 @@ class BanButton(discord.ui.Button):
 
 class ReasonButton(discord.ui.Button):
     def __init__(self, post, reason):
-        super().__init__(label=reason.title, style=discord.enums.ButtonStyle.red)
+        super().__init__(label=reason.title, style=discord.enums.ButtonStyle.blurple)
         self.post = post
         self.reason = reason
 
