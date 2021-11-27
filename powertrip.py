@@ -84,7 +84,7 @@ class ItemView(discord.ui.View):
         durations = (
             os.environ["pt_ban_durations"].split(",")
             if "pt_ban_durations" in os.environ
-            else [2, 4, 8]
+            else [3, 7, 28]
         )
         durations += [None]
         for duration in durations:
