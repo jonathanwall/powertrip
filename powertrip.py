@@ -166,7 +166,7 @@ def embed(item):
         embed["fields"] = [{"name": "Reports", "value": item.user_reports[0][0]}]
 
     if isinstance(item, comment.Comment):
-        embed["description"] = item.body[:4096]
+        embed["description"] = f"[{item.body[:4000]}](https://www.reddit.com{item.permalink})"
     if isinstance(item, submission.Submission):
         embed["title"] = item.title[:256]
         if item.selftext:
