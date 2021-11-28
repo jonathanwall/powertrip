@@ -163,11 +163,13 @@ class RemoveButton(discord.ui.Button):
 class BanButton(discord.ui.Button):
     def __init__(self, item, duration=None):
         if duration is None:
-            label = f"🔨 perm ban"
+            label = f"Permanent Ban"
+            style = discord.enums.ButtonStyle.red
         else:
-            label = f"{duration} day ban"
+            label = f"{duration} Day Ban"
+            style = discord.enums.ButtonStyle.blurple
 
-        super().__init__(label=label, style=discord.enums.ButtonStyle.red)
+        super().__init__(label=label, style=style)
         self.item = item
         self.duration = duration
 
