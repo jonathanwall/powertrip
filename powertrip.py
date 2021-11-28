@@ -17,6 +17,45 @@ class PowerTrip(commands.Cog):
         self.subreddit = None
         self.stream.start()
 
+    def create_embed(self, item):
+        embed = {
+            "color": 0xDA655F,
+            "url": f"https://www.reddit.com{item.permalink}",
+            "timestamp": datetime.datetime.fromtimestamp(item.created_utc).isoformat(),
+            "author": {
+                "name": item.author.name,
+                "url": f"https://www.reddit.com/u/{item.author.name}",
+            },
+            "footer": {"text": f"{item.id}"},
+        }
+        if item.user_reports:
+            embed["color"] = 0xDFA936
+            embed["fields"] = [{"name": "Reports", "value": item.user_reports[0][0]}]
+
+        if isinstance(item, comment.Comment):
+            embed["description"] = f"[{item.body}](https://www.reddit.com{item.permalink})"
+        if isinstance(item, submission.Submission):
+            embed["title"] = item.title[:256]
+            if item.selftext:
+                embed["description"] = item.selftext[:4096]
+
+            if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
+                embed["image"] = {"url": item.url}
+            elif "imgur.com" in item.url:
+                embed["image"] = {"url": item.url + ".jpg"}
+            elif hasattr(item, "media_metadata"):
+                try:
+                    embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
+                except KeyError:
+                    pass
+
+        return discord.Embed.from_dict(embed)
+
+    async def create_view(self, item):
+        view = ItemView(item)
+        await view.add_buttons()
+        return view
+
     @tasks.loop()
     async def stream(self):
         discord = {}
@@ -41,7 +80,9 @@ class PowerTrip(commands.Cog):
                 del reddit[item_id]
 
         for item in dict(reversed(list(reddit.items()))):
-            await self.channel.send(embed=embed(reddit[item]), view=await view(reddit[item]))
+            embed = self.create_embed(reddit[item])
+            view = await self.create_view(reddit[item])
+            await self.channel.send(embed=embed, view=view)
 
     @stream.before_loop
     async def before_stream(self):
@@ -162,47 +203,6 @@ class ReasonButton(discord.ui.Button):
             await interaction.message.delete()
         except discord.errors.NotFound:
             pass
-
-
-def embed(item):
-    embed = {
-        "color": 0xDA655F,
-        "url": f"https://www.reddit.com{item.permalink}",
-        "timestamp": datetime.datetime.fromtimestamp(item.created_utc).isoformat(),
-        "author": {
-            "name": item.author.name,
-            "url": f"https://www.reddit.com/u/{item.author.name}",
-        },
-        "footer": {"text": f"{item.id}"},
-    }
-    if item.user_reports:
-        embed["color"] = 0xDFA936
-        embed["fields"] = [{"name": "Reports", "value": item.user_reports[0][0]}]
-
-    if isinstance(item, comment.Comment):
-        embed["description"] = f"[{item.body}](https://www.reddit.com{item.permalink})"
-    if isinstance(item, submission.Submission):
-        embed["title"] = item.title[:256]
-        if item.selftext:
-            embed["description"] = item.selftext[:4096]
-
-        if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
-            embed["image"] = {"url": item.url}
-        elif "imgur.com" in item.url:
-            embed["image"] = {"url": item.url + ".jpg"}
-        elif hasattr(item, "media_metadata"):
-            try:
-                embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
-            except KeyError:
-                pass
-
-    return discord.Embed.from_dict(embed)
-
-
-async def view(item):
-    view = ItemView(item)
-    await view.add_buttons()
-    return view
 
 
 def main():
