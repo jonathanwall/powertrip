@@ -75,7 +75,7 @@ class PowerTrip(commands.Cog):
             if item_id not in reddit:
                 try:
                     await discord[item_id].delete()
-                except discord.errors.NotFound:
+                except NotFound:
                     pass
             else:
                 del reddit[item_id]
@@ -143,7 +143,7 @@ class ApproveButton(discord.ui.Button):
         await self.item.mod.approve()
         try:
             await interaction.message.delete()
-        except discord.errors.NotFound:
+        except NotFound:
             pass
 
 
@@ -185,7 +185,7 @@ class BanButton(discord.ui.Button):
         await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
         try:
             await interaction.message.delete()
-        except discord.errors.NotFound:
+        except NotFound:
             pass
 
 
@@ -204,7 +204,7 @@ class ReasonButton(discord.ui.Button):
         )
         try:
             await interaction.message.delete()
-        except discord.errors.NotFound:
+        except NotFound:
             pass
 
 
