@@ -7,6 +7,7 @@ import uvloop
 from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
 from discord.ext import commands, tasks
+from discord.errors import NotFound
 
 
 class PowerTrip(commands.Cog):
@@ -155,7 +156,7 @@ class RemoveButton(discord.ui.Button):
         await self.item.mod.remove()
         try:
             await interaction.message.delete()
-        except discord.errors.NotFound:
+        except NotFound:
             pass
 
 
