@@ -3,7 +3,6 @@ import os
 from asyncio import sleep
 
 import discord
-from pprint import pprint
 import uvloop
 from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
