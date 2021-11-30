@@ -3,11 +3,19 @@ import os
 from asyncio import sleep
 
 import discord
+from pprint import pprint
 import uvloop
 from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
 from discord.ext import commands, tasks
 from discord.errors import NotFound
+
+
+async def delete_discord_message(message):
+    try:
+        await message.delete()
+    except NotFound:
+        pass
 
 
 class PowerTrip(commands.Cog):
@@ -19,34 +27,54 @@ class PowerTrip(commands.Cog):
         self.stream.start()
 
     def create_embed(self, item):
+        color = 0xDA655F
+        reports_color = 0xDFA936
+        permalink = item.permalink
+        item_url = f"https://www.reddit.com{permalink}"
+        timestamp = datetime.datetime.fromtimestamp(item.created_utc).isoformat()
+        author_name = item.author.name
+        author_url = f"https://www.reddit.com/u/{item.author.name}"
+        footer_text = f"{item.id}"
+
         embed = {
-            "color": 0xDA655F,
-            "url": f"https://www.reddit.com{item.permalink}",
-            "timestamp": datetime.datetime.fromtimestamp(item.created_utc).isoformat(),
+            "color": color,
+            "url": item_url,
+            "timestamp": timestamp,
             "author": {
-                "name": item.author.name,
-                "url": f"https://www.reddit.com/u/{item.author.name}",
+                "name": author_name,
+                "url": author_url,
             },
-            "footer": {"text": f"{item.id}"},
+            "footer": {"text": footer_text},
         }
         if item.user_reports:
-            embed["color"] = 0xDFA936
-            embed["fields"] = [{"name": "Reports", "value": item.user_reports[0][0]}]
+            report = item.user_reports[0][0]
+
+            embed["color"] = reports_color
+            embed["fields"] = [{"name": "Reports", "value": report}]
 
         if isinstance(item, comment.Comment):
-            embed["description"] = f"[{item.body}](https://www.reddit.com{item.permalink})"
+            linked_comment = f"[{item.body}]({item_url})"
+
+            embed["description"] = linked_comment
+
         if isinstance(item, submission.Submission):
-            embed["title"] = item.title[:256]
+            title = item.title[:256]
+            embed["title"] = title
+
             if item.selftext:
-                embed["description"] = item.selftext[:4096]
+                selftext = item.selftext[:4096]
+                embed["description"] = selftext
 
             if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
+                image_url = item.url
                 embed["image"] = {"url": item.url}
             elif "imgur.com" in item.url:
-                embed["image"] = {"url": item.url + ".jpg"}
+                image_url = item.url + ".jpg"
+                embed["image"] = {"url": image_url}
             elif hasattr(item, "media_metadata"):
                 try:
-                    embed["image"] = {"url": list(item.media_metadata.values())[0]["s"]["u"]}
+                    image_url = list(item.media_metadata.values())[0]["s"]["u"]
+                    embed["image"] = {"url": image_url}
                 except KeyError:
                     pass
 
@@ -55,6 +83,7 @@ class PowerTrip(commands.Cog):
     async def create_view(self, item):
         view = ItemView(item)
         await view.add_buttons()
+
         return view
 
     @tasks.loop()
@@ -72,13 +101,10 @@ class PowerTrip(commands.Cog):
             return
 
         for item_id in discord:
-            if item_id not in reddit:
-                try:
-                    await discord[item_id].delete()
-                except NotFound:
-                    pass
-            else:
+            if item_id in reddit:
                 del reddit[item_id]
+            else:
+                await delete_discord_message(discord[item_id])
 
         for item in dict(reversed(list(reddit.items()))):
             embed = self.create_embed(reddit[item])
@@ -107,8 +133,8 @@ class PowerTrip(commands.Cog):
 
 
 class ItemView(discord.ui.View):
-    def __init__(self, item):
-        super().__init__(timeout=None)
+    def __init__(self, item, timeout=None):
+        super().__init__(timeout=timeout)
         self.item = item
 
     async def add_buttons(self):
@@ -131,33 +157,39 @@ class ItemView(discord.ui.View):
         )
         durations += [None]
         for duration in durations:
-            self.add_item(BanButton(comment, duration))
+            self.add_item(BanButton(self.item, duration))
 
 
 class ApproveButton(discord.ui.Button):
     def __init__(self, item):
-        super().__init__(label="Approve", style=discord.enums.ButtonStyle.green)
+        label = "Approve"
+        style = discord.enums.ButtonStyle.green
+
+        super().__init__(label=label, style=style)
         self.item = item
 
     async def callback(self, interaction):
         await self.item.mod.approve()
-        try:
-            await interaction.message.delete()
-        except NotFound:
-            pass
+        await delete_discord_message(interaction.message)
+
+    async def log(self, interaction):
+        pass
 
 
 class RemoveButton(discord.ui.Button):
     def __init__(self, item):
-        super().__init__(label="Remove", style=discord.enums.ButtonStyle.grey)
+        label = "Remove"
+        style = discord.enums.ButtonStyle.grey
+
+        super().__init__(label=label, style=style)
         self.item = item
 
     async def callback(self, interaction):
         await self.item.mod.remove()
-        try:
-            await interaction.message.delete()
-        except NotFound:
-            pass
+        await delete_discord_message(interaction.message)
+
+    async def log(self, interaction):
+        pass
 
 
 class BanButton(discord.ui.Button):
@@ -174,38 +206,45 @@ class BanButton(discord.ui.Button):
         self.duration = duration
 
     async def callback(self, interaction):
-        await self.item.mod.remove()
+        print(self.item.fullname)
+        ban_context = self.item.fullname
+        ban_message = f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})"
+        ban_note = f"{interaction.user} from PowerTrip"
+        ban_reason = f"this is the ban reason"
+
         ban_options = {
-            "ban_context": self.item.name,
-            "ban_message": f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})",
-            "note": f"{interaction.user} from PowerTrip",
+            "ban_context": ban_context,
+            "ban_message": ban_message,
+            "ban_reason": ban_reason,
+            "note": ban_note,
         }
         if self.duration:
             ban_options["duration"] = self.duration
+
+        await self.item.mod.remove()
         await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
-        try:
-            await interaction.message.delete()
-        except NotFound:
-            pass
+        await delete_discord_message(interaction.message)
 
 
 class ReasonButton(discord.ui.Button):
-    def __init__(self, post, reason):
-        super().__init__(label=reason.title, style=discord.enums.ButtonStyle.blurple)
-        self.post = post
+    def __init__(self, item, reason):
+        label = reason.title
+        style = discord.enums.ButtonStyle.blurple
+
+        super().__init__(label=label, style=style)
+        self.post = item
         self.reason = reason
 
     async def callback(self, interaction):
-        await self.post.mod.remove(
-            mod_note=f"{interaction.user} via PowerTrip", reason_id=self.reason.id
-        )
-        await self.post.mod.send_removal_message(
-            self.reason.message, title=self.reason.title, type="private"
-        )
-        try:
-            await interaction.message.delete()
-        except NotFound:
-            pass
+        mod_note = f"{interaction.user} via PowerTrip"
+        reason_id = self.reason.id
+        message = self.reason.message
+        title = self.reason.title
+        removal_type = "private"
+
+        await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
+        await self.post.mod.send_removal_message(message, title=title, type=removal_type)
+        await delete_discord_message(interaction.message)
 
 
 def main():
