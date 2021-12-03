@@ -6,15 +6,8 @@ import discord
 import uvloop
 from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
-from discord.ext import commands, tasks
 from discord.errors import NotFound
-
-
-async def delete_discord_message(message):
-    try:
-        await message.delete()
-    except NotFound:
-        pass
+from discord.ext import commands, tasks
 
 
 class PowerTrip(commands.Cog):
@@ -85,16 +78,32 @@ class PowerTrip(commands.Cog):
 
         return view
 
-    @tasks.loop()
+    @tasks.loop(count=1)
     async def stream(self):
-        discord = {}
-        async for message in self.channel.history():
-            if message.author == self.bot.user:
-                discord[message.embeds[0].footer.text] = message
-
         reddit = {}
-        async for item in self.subreddit.mod.modqueue():
-            reddit[item.id] = item
+        try:
+            async for item in self.subreddit.mod.modqueue():
+                reddit[item.id] = item
+        except Exception as e:
+            await self.channel.purge()
+            await self.channel.send(
+                f"An error has occured getting the reddit modqueue:\n\n{e}\n\nTrying again in 5 minutes."
+            )
+            await sleep(300)
+            await self.stream.restart()
+
+        try:
+            discord = {}
+            async for message in self.channel.history():
+                if message.author == self.bot.user:
+                    discord[message.embeds[0].footer.text] = message
+        except Exception as e:
+            await self.channel.purge()
+            await self.channel.send(
+                f"An error has occured getting the discord channel history:\n\n{e}\n\nTrying again in 5 minutes."
+            )
+            await sleep(300)
+            await self.stream.restart()
 
         if discord.keys() == reddit.keys():
             return
@@ -103,7 +112,10 @@ class PowerTrip(commands.Cog):
             if item_id in reddit:
                 del reddit[item_id]
             else:
-                await delete_discord_message(discord[item_id])
+                try:
+                    await discord[item_id].delete()
+                except NotFound:
+                    pass
 
         for item in dict(reversed(list(reddit.items()))):
             embed = self.create_embed(reddit[item])
@@ -125,10 +137,23 @@ class PowerTrip(commands.Cog):
     @stream.after_loop
     async def after_stream(self):
         if not self.stream.is_being_cancelled():
-            await self.channel.purge()
-            await self.channel.send("Stream error. Trying again in five minutes.")
-            await sleep(300)
             self.stream.restart()
+
+
+class ErrorView(discord.ui.View):
+    def __init__(self, error, timeout=None):
+        super().__init__(timeout=timeout)
+        self.error = error
+        self.add_error_button()
+
+    def add_error_button(self):
+        self.add_item(self.ErrorButton(self.error))
+
+    class ErrorButton(discord.ui.Button):
+        def __init__(self, error):
+            super().__init__(
+                label=f"Error: {error}", disabled=True, style=discord.enums.ButtonStyle.gray
+            )
 
 
 class ItemView(discord.ui.View):
@@ -136,9 +161,21 @@ class ItemView(discord.ui.View):
         super().__init__(timeout=timeout)
         self.item = item
 
-    async def add_buttons(self):
+    def add_approve_button(self):
         self.add_item(ApproveButton(self.item))
+
+    def add_remove_button(self):
         self.add_item(RemoveButton(self.item))
+
+    def add_ban_button(self, duration):
+        self.add_item(BanButton(self.item, duration))
+
+    def add_reason_button(self, reason):
+        self.add_item(ReasonButton(self.item, reason))
+
+    async def add_buttons(self):
+        self.add_approve_button()
+        self.add_remove_button()
         if isinstance(self.item, submission.Submission):
             await self.add_reason_buttons()
         if isinstance(self.item, comment.Comment):
@@ -146,7 +183,7 @@ class ItemView(discord.ui.View):
 
     async def add_reason_buttons(self):
         async for reason in self.item.subreddit.mod.removal_reasons:
-            self.add_item(ReasonButton(self.item, reason))
+            self.add_reason_button(reason)
 
     def add_ban_buttons(self):
         durations = (
@@ -156,10 +193,22 @@ class ItemView(discord.ui.View):
         )
         durations += [None]
         for duration in durations:
-            self.add_item(BanButton(self.item, duration))
+            self.add_ban_button(self.item, duration)
 
 
-class ApproveButton(discord.ui.Button):
+class Button(discord.ui.Button):
+    async def handle_exception(self, message, exception):
+        view = ErrorView(exception)
+        await message.edit(view=view)
+
+    async def delete_message(self, message):
+        try:
+            await message.delete()
+        except NotFound:
+            pass
+
+
+class ApproveButton(Button):
     def __init__(self, item):
         label = "Approve"
         style = discord.enums.ButtonStyle.green
@@ -168,14 +217,15 @@ class ApproveButton(discord.ui.Button):
         self.item = item
 
     async def callback(self, interaction):
-        await self.item.mod.approve()
-        await delete_discord_message(interaction.message)
+        try:
+            await self.item.mod.approve()
+        except Exception as e:
+            await self.handle_exception(interaction.message, e)
+        else:
+            await self.delete_message(interaction.message)
 
-    async def log(self, interaction):
-        pass
 
-
-class RemoveButton(discord.ui.Button):
+class RemoveButton(Button):
     def __init__(self, item):
         label = "Remove"
         style = discord.enums.ButtonStyle.grey
@@ -184,14 +234,15 @@ class RemoveButton(discord.ui.Button):
         self.item = item
 
     async def callback(self, interaction):
-        await self.item.mod.remove()
-        await delete_discord_message(interaction.message)
+        try:
+            await self.item.mod.remove()
+        except Exception as e:
+            await self.handle_exception(interaction.message, e)
+        else:
+            await self.delete_message(interaction.message)
 
-    async def log(self, interaction):
-        pass
 
-
-class BanButton(discord.ui.Button):
+class BanButton(Button):
     def __init__(self, item, duration=None):
         if duration is None:
             label = f"Permanent Ban"
@@ -205,7 +256,6 @@ class BanButton(discord.ui.Button):
         self.duration = duration
 
     async def callback(self, interaction):
-        print(self.item.fullname)
         ban_context = self.item.fullname
         ban_message = f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})"
         ban_note = f"{interaction.user} from PowerTrip"
@@ -220,12 +270,16 @@ class BanButton(discord.ui.Button):
         if self.duration:
             ban_options["duration"] = self.duration
 
-        await self.item.mod.remove()
-        await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
-        await delete_discord_message(interaction.message)
+        try:
+            await self.item.mod.remove()
+            await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
+        except Exception as e:
+            await self.handle_exception(interaction.message, e)
+        else:
+            await self.delete_message(interaction.message)
 
 
-class ReasonButton(discord.ui.Button):
+class ReasonButton(Button):
     def __init__(self, item, reason):
         label = reason.title
         style = discord.enums.ButtonStyle.blurple
@@ -241,9 +295,13 @@ class ReasonButton(discord.ui.Button):
         title = self.reason.title
         removal_type = "private"
 
-        await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
-        await self.post.mod.send_removal_message(message, title=title, type=removal_type)
-        await delete_discord_message(interaction.message)
+        try:
+            await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
+            await self.post.mod.send_removal_message(message, title=title, type=removal_type)
+        except Exception as e:
+            await self.handle_exception(interaction.message, e)
+        else:
+            await self.delete_message(interaction.message)
 
 
 def main():
