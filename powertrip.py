@@ -193,7 +193,7 @@ class ItemView(discord.ui.View):
         )
         durations += [None]
         for duration in durations:
-            self.add_ban_button(self.item, duration)
+            self.add_ban_button(duration)
 
 
 class Button(discord.ui.Button):
