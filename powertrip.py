@@ -78,8 +78,7 @@ class PowerTrip(commands.Cog):
 
         return view
 
-    @tasks.loop()
-    async def stream(self):
+    async def get_queue_items(self):
         reddit = {}
         try:
             async for item in self.subreddit.mod.modqueue():
@@ -92,8 +91,11 @@ class PowerTrip(commands.Cog):
             await sleep(300)
             await self.stream.restart()
 
+        return reddit
+
+    async def get_channel_items(self):
+        discord = {}
         try:
-            discord = {}
             async for message in self.channel.history():
                 if message.author == self.bot.user:
                     discord[message.embeds[0].footer.text] = message
@@ -105,8 +107,14 @@ class PowerTrip(commands.Cog):
             await sleep(300)
             await self.stream.restart()
 
+        return discord
+
+    async def get_new_items(self):
+        reddit = await self.get_queue_items()
+        discord = await self.get_channel_items()
+
         if discord.keys() == reddit.keys():
-            return
+            return {}
 
         for item_id in discord:
             if item_id in reddit:
@@ -117,10 +125,19 @@ class PowerTrip(commands.Cog):
                 except NotFound:
                     pass
 
-        for item in dict(reversed(list(reddit.items()))):
-            embed = self.create_embed(reddit[item])
-            view = await self.create_view(reddit[item])
-            await self.channel.send(embed=embed, view=view)
+        return dict(reversed(list(reddit.items())))
+
+    async def send_item_to_channel(self, item):
+        embed = self.create_embed(item)
+        view = await self.create_view(item)
+        await self.channel.send(embed=embed, view=view)
+
+    @tasks.loop()
+    async def stream(self):
+        queue_items = await self.get_new_items()
+
+        for item in queue_items:
+            await self.send_item_to_channel(queue_items[item])
 
     @stream.before_loop
     async def before_stream(self):
