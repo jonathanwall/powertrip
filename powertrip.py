@@ -78,7 +78,7 @@ class PowerTrip(commands.Cog):
 
         return view
 
-    @tasks.loop(count=1)
+    @tasks.loop()
     async def stream(self):
         reddit = {}
         try:
