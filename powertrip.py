@@ -79,10 +79,10 @@ class PowerTrip(commands.Cog):
         return view
 
     async def get_queue_items(self):
-        reddit = {}
+        queue_items = {}
         try:
             async for item in self.subreddit.mod.modqueue():
-                reddit[item.id] = item
+                queue_items[item.id] = item
         except Exception as e:
             await self.channel.purge()
             await self.channel.send(
@@ -91,14 +91,14 @@ class PowerTrip(commands.Cog):
             await sleep(300)
             await self.stream.restart()
 
-        return reddit
+        return queue_items
 
     async def get_channel_items(self):
-        discord = {}
+        channel_items = {}
         try:
             async for message in self.channel.history():
                 if message.author == self.bot.user:
-                    discord[message.embeds[0].footer.text] = message
+                    channel_items[message.embeds[0].footer.text] = message
         except Exception as e:
             await self.channel.purge()
             await self.channel.send(
@@ -107,25 +107,25 @@ class PowerTrip(commands.Cog):
             await sleep(300)
             await self.stream.restart()
 
-        return discord
+        return channel_items
 
     async def get_new_items(self):
-        reddit = await self.get_queue_items()
-        discord = await self.get_channel_items()
+        queue = await self.get_queue_items()
+        channel = await self.get_channel_items()
 
-        if discord.keys() == reddit.keys():
+        if channel.keys() == queue.keys():
             return {}
 
-        for item_id in discord:
-            if item_id in reddit:
-                del reddit[item_id]
+        for item_id in channel:
+            if item_id in queue:
+                del queue[item_id]
             else:
                 try:
-                    await discord[item_id].delete()
+                    await channel[item_id].delete()
                 except NotFound:
                     pass
 
-        return dict(reversed(list(reddit.items())))
+        return dict(reversed(list(queue.items())))
 
     async def send_item_to_channel(self, item):
         embed = self.create_embed(item)
