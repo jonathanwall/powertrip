@@ -83,7 +83,7 @@ class PowerTrip(commands.Cog):
         try:
             async for item in self.subreddit.mod.modqueue():
                 queue_items[item.id] = item
-        except Exception as e:
+        except Exception:
             await self.channel.purge()
             await self.channel.send(
                 f"An error has occured getting the reddit modqueue:\n\n{e}\n\nTrying again in 5 minutes."
@@ -99,7 +99,7 @@ class PowerTrip(commands.Cog):
             async for message in self.channel.history():
                 if message.author == self.bot.user:
                     channel_items[message.embeds[0].footer.text] = message
-        except Exception as e:
+        except Exception:
             await self.channel.purge()
             await self.channel.send(
                 f"An error has occured getting the discord channel history:\n\n{e}\n\nTrying again in 5 minutes."
@@ -169,7 +169,7 @@ class ErrorView(discord.ui.View):
     class ErrorButton(discord.ui.Button):
         def __init__(self, error):
             super().__init__(
-                label=f"Error: {error}", disabled=True, style=discord.enums.ButtonStyle.gray
+                label=f"Error: {error}"[:80], disabled=True, style=discord.enums.ButtonStyle.gray
             )
 
 
@@ -236,8 +236,8 @@ class ApproveButton(Button):
     async def callback(self, interaction):
         try:
             await self.item.mod.approve()
-        except Exception as e:
-            await self.handle_exception(interaction.message, e)
+        except Exception:
+            await self.handle_exception(interaction.message, Exception)
         else:
             await self.delete_message(interaction.message)
 
@@ -253,8 +253,8 @@ class RemoveButton(Button):
     async def callback(self, interaction):
         try:
             await self.item.mod.remove()
-        except Exception as e:
-            await self.handle_exception(interaction.message, e)
+        except Exception:
+            await self.handle_exception(interaction.message, Exception)
         else:
             await self.delete_message(interaction.message)
 
@@ -290,8 +290,8 @@ class BanButton(Button):
         try:
             await self.item.mod.remove()
             await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
-        except Exception as e:
-            await self.handle_exception(interaction.message, e)
+        except Exception:
+            await self.handle_exception(interaction.message, Exception)
         else:
             await self.delete_message(interaction.message)
 
@@ -315,8 +315,8 @@ class ReasonButton(Button):
         try:
             await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
             await self.post.mod.send_removal_message(message, title=title, type=removal_type)
-        except Exception as e:
-            await self.handle_exception(interaction.message, e)
+        except Exception:
+            await self.handle_exception(interaction.message, Exception)
         else:
             await self.delete_message(interaction.message)
 
