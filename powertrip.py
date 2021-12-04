@@ -86,7 +86,7 @@ class PowerTrip(commands.Cog):
         except Exception:
             await self.channel.purge()
             await self.channel.send(
-                f"An error has occured getting the reddit modqueue:\n\n{e}\n\nTrying again in 5 minutes."
+                f"An error has occured getting the reddit modqueue:\n\n{Exception}\n\nTrying again in 5 minutes."
             )
             await sleep(300)
             await self.stream.restart()
@@ -102,7 +102,7 @@ class PowerTrip(commands.Cog):
         except Exception:
             await self.channel.purge()
             await self.channel.send(
-                f"An error has occured getting the discord channel history:\n\n{e}\n\nTrying again in 5 minutes."
+                f"An error has occured getting the discord channel history:\n\n{Exception}\n\nTrying again in 5 minutes."
             )
             await sleep(300)
             await self.stream.restart()
