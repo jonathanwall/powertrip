@@ -11,7 +11,7 @@ class Button(Button):
         await message.edit(view=view)
 
     async def delete_message(self, message):
-        sleep(1)
+        await sleep(1)
         try:
             await message.delete()
         except NotFound:
