@@ -19,7 +19,7 @@ class PowerTrip(commands.Cog):
         self.subreddit = None
         self.stream.start()
 
-    @tasks.loop()
+    @tasks.loop(seconds=60)
     async def stream(self):
         queue_items = await self.get_new_items()
 

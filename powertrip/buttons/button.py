@@ -1,5 +1,6 @@
 from discord.ui import Button
 from discord.errors import NotFound
+from asyncio import sleep
 
 from powertrip.views import ErrorView
 
@@ -10,6 +11,7 @@ class Button(Button):
         await message.edit(view=view)
 
     async def delete_message(self, message):
+        sleep(1)
         try:
             await message.delete()
         except NotFound:
