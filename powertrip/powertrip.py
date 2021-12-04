@@ -40,6 +40,11 @@ class PowerTrip(commands.Cog):
 
     @stream.after_loop
     async def after_stream(self):
+        await self.bot.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, name="nothing. I'm broken."
+            )
+        )
         if not self.stream.is_being_cancelled():
             self.stream.restart()
 
