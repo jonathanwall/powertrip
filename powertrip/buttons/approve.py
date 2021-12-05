@@ -12,6 +12,7 @@ class ApproveButton(BaseButton):
 
     async def callback(self, interaction):
         try:
+            await self.item.mod.unlock()
             await self.item.mod.approve()
         except Exception as e:
             await self.handle_exception(interaction.message, e)
