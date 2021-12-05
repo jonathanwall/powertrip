@@ -1,11 +1,12 @@
 import os
 
-from powertrip import buttons
 from asyncpraw.models.reddit import comment, submission
 from discord.ui import View
 
+from powertrip import buttons
 
-class ItemView(View):
+
+class View(View):
     def __init__(self, item, timeout=None):
         super().__init__(timeout=timeout)
         self.item = item

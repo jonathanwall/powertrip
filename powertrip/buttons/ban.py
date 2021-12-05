@@ -1,8 +1,8 @@
-from .button import Button
+from .base import BaseButton
 from discord.enums import ButtonStyle
 
 
-class BanButton(Button):
+class BanButton(BaseButton):
     def __init__(self, item, duration=None):
         if duration is None:
             label = f"Permanent Ban"

@@ -7,8 +7,7 @@ from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
 from discord.errors import NotFound
 from discord.ext import commands, tasks
-
-from powertrip.views import ItemView
+from .view import View
 
 
 class PowerTrip(commands.Cog):
@@ -21,10 +20,10 @@ class PowerTrip(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def stream(self):
-        queue_items = await self.get_new_items()
+        new_items = await self.get_new_items()
 
-        for item in queue_items:
-            await self.send_item_to_channel(queue_items[item])
+        for item in new_items:
+            await self.send_item_to_channel(new_items[item])
 
     @stream.before_loop
     async def before_stream(self):
@@ -103,10 +102,28 @@ class PowerTrip(commands.Cog):
         return discord.Embed.from_dict(embed)
 
     async def create_view(self, item):
-        view = ItemView(item)
+        view = View(item)
         await view.add_buttons()
 
         return view
+
+    async def get_new_items(self):
+        queue = await self.get_queue_items()
+        channel = await self.get_channel_items()
+
+        if channel.keys() == queue.keys():
+            return {}
+
+        for item_id in channel:
+            if item_id in queue:
+                del queue[item_id]
+            else:
+                try:
+                    await channel[item_id].delete()
+                except NotFound:
+                    pass
+
+        return dict(reversed(list(queue.items())))
 
     async def get_queue_items(self):
         queue_items = {}
@@ -138,24 +155,6 @@ class PowerTrip(commands.Cog):
             await self.stream.restart()
 
         return channel_items
-
-    async def get_new_items(self):
-        queue = await self.get_queue_items()
-        channel = await self.get_channel_items()
-
-        if channel.keys() == queue.keys():
-            return {}
-
-        for item_id in channel:
-            if item_id in queue:
-                del queue[item_id]
-            else:
-                try:
-                    await channel[item_id].delete()
-                except NotFound:
-                    pass
-
-        return dict(reversed(list(queue.items())))
 
     async def send_item_to_channel(self, item):
         embed = self.create_embed(item)

@@ -1,8 +1,8 @@
-from .button import Button
+from .base import BaseButton
 from discord.enums import ButtonStyle
 
 
-class ReasonButton(Button):
+class ReasonButton(BaseButton):
     def __init__(self, item, reason):
         label = reason.title
         style = ButtonStyle.blurple
