@@ -6,9 +6,6 @@ from discord.ui import Button, View
 
 
 class BaseButton(Button):
-    def __init__(self, style, label=None):
-        super().__init__(style=style, label=label)
-
     async def delete_message(self, message):
         await sleep(1)
         try:
