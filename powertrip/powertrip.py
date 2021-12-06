@@ -44,7 +44,17 @@ class PowerTrip(commands.Cog):
             )
         )
         if not self.stream.is_being_cancelled():
-            self.stream.restart()
+            await self.wait_and_restart()
+
+    async def wait_and_restart(self, error=None):
+        await self.channel.purge()
+        if error is not None:
+            message = f"The stream has encountered an error:\n`{error}`\nTrying again in 5 minutes."
+        else:
+            message = f"The stream has encountered an error.\nTrying again in 5 minutes."
+        await self.channel.send(message)
+        await sleep(300)
+        self.stream.restart()
 
     def create_embed(self, item):
         color = 0xDA655F
@@ -130,12 +140,7 @@ class PowerTrip(commands.Cog):
             async for item in self.subreddit.mod.modqueue():
                 queue_items[item.id] = item
         except Exception as e:
-            await self.channel.purge()
-            await self.channel.send(
-                f"An error has occured getting the reddit modqueue:\n\n{e}\n\nTrying again in 5 minutes."
-            )
-            await sleep(300)
-            await self.stream.restart()
+            await self.wait_and_restart(e)
 
         return queue_items
 
@@ -146,12 +151,7 @@ class PowerTrip(commands.Cog):
                 if message.author == self.bot.user:
                     channel_items[message.embeds[0].footer.text] = message
         except Exception as e:
-            await self.channel.purge()
-            await self.channel.send(
-                f"An error has occured getting the discord channel history:\n\n{e}\n\nTrying again in 5 minutes."
-            )
-            await sleep(300)
-            await self.stream.restart()
+            await self.wait_and_restart(e)
 
         return channel_items
 
