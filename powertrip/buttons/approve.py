@@ -3,7 +3,7 @@ from discord.enums import ButtonStyle
 
 
 class ApproveButton(BaseButton):
-    def __init__(self, item, log_channel=None):
+    def __init__(self, item):
         style = ButtonStyle.green
         label = "Approve"
 
