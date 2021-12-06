@@ -4,10 +4,10 @@ from discord.enums import ButtonStyle
 
 class RemoveButton(BaseButton):
     def __init__(self, item):
-        label = "Remove"
         style = ButtonStyle.grey
+        label = "Remove"
 
-        super().__init__(label=label, style=style)
+        super().__init__(style=style, label=label)
         self.item = item
 
     async def callback(self, interaction):

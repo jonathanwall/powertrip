@@ -6,9 +6,8 @@ from discord.ui import Button, View
 
 
 class BaseButton(Button):
-    async def handle_exception(self, message, exception):
-        view = ExceptionView(exception)
-        await message.edit(view=view)
+    def __init__(self, style, label=None):
+        super().__init__(style=style, label=label)
 
     async def delete_message(self, message):
         await sleep(1)
@@ -16,6 +15,10 @@ class BaseButton(Button):
             await message.delete()
         except NotFound:
             pass
+
+    async def handle_exception(self, message, exception):
+        view = ExceptionView(exception)
+        await message.edit(view=view)
 
 
 class ExceptionView(View):

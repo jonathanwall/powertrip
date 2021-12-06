@@ -4,10 +4,10 @@ from discord.enums import ButtonStyle
 
 class ReasonButton(BaseButton):
     def __init__(self, item, reason):
-        label = reason.title
         style = ButtonStyle.blurple
+        label = reason.title
 
-        super().__init__(label=label, style=style)
+        super().__init__(style=style, label=label)
         self.post = item
         self.reason = reason
 

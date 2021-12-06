@@ -5,13 +5,13 @@ from discord.enums import ButtonStyle
 class BanButton(BaseButton):
     def __init__(self, item, duration=None):
         if duration is None:
-            label = f"Permanent Ban"
             style = ButtonStyle.red
+            label = f"Permanent Ban"
         else:
-            label = f"{duration} Day Ban"
             style = ButtonStyle.blurple
+            label = f"{duration} Day Ban"
 
-        super().__init__(label=label, style=style)
+        super().__init__(style=style, label=label)
         self.item = item
         self.duration = duration
 
