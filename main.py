@@ -1,6 +1,5 @@
 import os
 
-import uvloop
 from asyncpraw import Reddit
 from discord import Bot
 
@@ -8,10 +7,16 @@ from powertrip import PowerTrip
 
 
 def main():
-    uvloop.install()
+    try:
+        import uvloop
+    except ImportError:
+        pass
+    else:
+        uvloop.install()
 
-    reddit = Reddit()
     bot = Bot(description="PowerTrip: discord + reddit moderation helper")
+    reddit = Reddit()
+
     bot.add_cog(PowerTrip(bot, reddit))
     bot.run(os.environ["pt_token"])
 
