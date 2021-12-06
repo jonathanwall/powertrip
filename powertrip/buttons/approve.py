@@ -9,7 +9,6 @@ class ApproveButton(BaseButton):
 
         super().__init__(style=style, label=label)
         self.item = item
-        self.log_channel = log_channel
 
     async def callback(self, interaction):
         try:
@@ -18,5 +17,4 @@ class ApproveButton(BaseButton):
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:
-            await self.log_action()
             await self.delete_message(interaction.message)
