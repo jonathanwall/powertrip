@@ -3,7 +3,6 @@ import os
 from asyncio import sleep
 
 import discord
-from asyncpraw import Reddit
 from asyncpraw.models.reddit import comment, submission
 from discord.errors import NotFound
 from discord.ext import commands, tasks
@@ -11,10 +10,10 @@ from .view import View
 
 
 class PowerTrip(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, reddit):
         self.bot = bot
+        self.reddit = reddit
         self.channel = None
-        self.reddit = Reddit()
         self.subreddit = None
         self.stream.start()
 
