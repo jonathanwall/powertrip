@@ -4,8 +4,10 @@ from asyncio import sleep
 
 import discord
 from asyncpraw.models.reddit import comment, submission
+from discord import embeds
 from discord.errors import NotFound
 from discord.ext import commands, tasks
+
 from .view import View
 
 
@@ -20,9 +22,8 @@ class PowerTrip(commands.Cog):
     @tasks.loop(seconds=60)
     async def stream(self):
         new_items = await self.get_new_items()
-
         for item in new_items:
-            await self.send_item_to_channel(new_items[item])
+            await self.send_item_to_channel(item)
 
     @stream.before_loop
     async def before_stream(self):
@@ -33,7 +34,9 @@ class PowerTrip(commands.Cog):
 
         await self.channel.purge()
         await self.bot.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.watching, name="reddit.")
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, name="reddit."
+            )
         )
 
     @stream.after_loop
@@ -51,49 +54,72 @@ class PowerTrip(commands.Cog):
         if error is not None:
             message = f"The stream has encountered an error:\n`{error}`\nTrying again in 5 minutes."
         else:
-            message = f"The stream has encountered an error.\nTrying again in 5 minutes."
+            message = (
+                f"The stream has encountered an error.\nTrying again in 5 minutes."
+            )
         await self.channel.send(message)
         await sleep(300)
         self.stream.restart()
 
-    def create_embed(self, item):
-        color = 0xDA655F
-        reports_color = 0xDFA936
-        permalink = item.permalink
-        item_url = f"https://www.reddit.com{permalink}"
+    async def create_embed(self, item):
+        await item.author.load()
         timestamp = datetime.datetime.fromtimestamp(item.created_utc).isoformat()
-        author_name = item.author.name
-        author_url = f"https://www.reddit.com/u/{item.author.name}"
-        footer_text = f"{item.id}"
 
         embed = {
-            "color": color,
-            "url": item_url,
+            "color": 0xDA655F,
             "timestamp": timestamp,
-            "author": {
-                "name": author_name,
-                "url": author_url,
-            },
-            "footer": {"text": footer_text},
+            "footer": {"text": item.id},
+            "fields": [],
         }
-        if item.user_reports:
-            report = item.user_reports[0][0]
-
-            embed["color"] = reports_color
-            embed["fields"] = [{"name": "Reports", "value": report}]
 
         if isinstance(item, comment.Comment):
-            linked_comment = f"[{item.body}]({item_url})"
+            embed["fields"] += [
+                {
+                    "name": "Comment",
+                    "value": f"**[{item.body[:900]}](https://www.reddit.com/{item.permalink})**",
+                },
+                {
+                    "name": "Author (Karma)",
+                    "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
+                    + f" ({item.author.comment_karma})",
+                },
+            ]
+            if item.parent_id.startswith("t1_"):
+                parent_comment = await self.reddit.comment(item.parent_id)
+                await parent_comment.author.load()
 
-            embed["description"] = linked_comment
+                embed["fields"].append(
+                    {
+                        "name": "In Reply To",
+                        "value": f"[{parent_comment.body}](https://www.reddit.com/{parent_comment.permalink})",
+                    }
+                )
+                embed["fields"].append(
+                    {
+                        "name": "Parent Comment Author",
+                        "value": f"[{parent_comment.author}](https://www.reddit.com/u/{parent_comment.author})"
+                        + f" ({parent_comment.author.comment_karma})",
+                    }
+                )
 
         if isinstance(item, submission.Submission):
-            title = item.title[:256]
-            embed["title"] = title
+            embed["fields"] += [
+                {
+                    "name": "Submission",
+                    "value": f"**[{item.title}](https://www.reddit.com/u/{item.permalink})**",
+                },
+                {
+                    "name": "Author (Karma)",
+                    "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
+                    + f" ({item.author.link_karma})",
+                },
+            ]
 
             if item.selftext:
-                selftext = item.selftext[:4096]
-                embed["description"] = selftext
+                selftext = (
+                    f"[{item.selftext[:900]}](https://www.reddit.com/{item.permalink})"
+                )
+                embed["fields"].append({"name": "Selftext", "value": selftext})
 
             if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
                 image_url = item.url
@@ -107,6 +133,15 @@ class PowerTrip(commands.Cog):
                     embed["image"] = {"url": image_url}
                 except KeyError:
                     pass
+
+        if item.user_reports or item.mod_reports:
+            embed["color"] = 0xDFA936
+            if item.mod_reports:
+                report = item.user_reports[0][0]
+                embed["fields"].append({"name": "User Reports", "value": report})
+            if item.mod_reports:
+                mod_report = item.mod_reports[0][0]
+                embed["fields"].append({"name": "Mod Reports", "value": mod_report})
 
         return discord.Embed.from_dict(embed)
 
@@ -132,7 +167,7 @@ class PowerTrip(commands.Cog):
                 except NotFound:
                     pass
 
-        return dict(reversed(list(queue.items())))
+        return reversed(list(queue.values()))
 
     async def get_queue_items(self):
         queue_items = {}
@@ -156,6 +191,6 @@ class PowerTrip(commands.Cog):
         return channel_items
 
     async def send_item_to_channel(self, item):
-        embed = self.create_embed(item)
-        view = await self.create_view(item)
+        embed = await self.create_embed(item)
+        view = await View.create(item)
         await self.channel.send(embed=embed, view=view)
