@@ -80,8 +80,7 @@ class PowerTrip(commands.Cog):
                 {
                     "name": "Author (Karma)",
                     "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-                    + f" ({item.author.comment_karma})"
-                    + f" {redditor_age}",
+                    + f" ({item.author.comment_karma})",
                 },
             ]
             if item.parent_id.startswith("t1_"):
