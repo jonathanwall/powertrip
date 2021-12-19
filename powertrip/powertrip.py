@@ -4,7 +4,6 @@ from asyncio import sleep
 
 import discord
 from asyncpraw.models.reddit import comment, submission
-from discord import embeds
 from discord.errors import NotFound
 from discord.ext import commands, tasks
 
@@ -81,7 +80,8 @@ class PowerTrip(commands.Cog):
                 {
                     "name": "Author (Karma)",
                     "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-                    + f" ({item.author.comment_karma})",
+                    + f" ({item.author.comment_karma})"
+                    + f" {redditor_age}",
                 },
             ]
             if item.parent_id.startswith("t1_"):
@@ -136,7 +136,7 @@ class PowerTrip(commands.Cog):
 
         if item.user_reports or item.mod_reports:
             embed["color"] = 0xDFA936
-            if item.mod_reports:
+            if item.user_reports:
                 report = item.user_reports[0][0]
                 embed["fields"].append({"name": "User Reports", "value": report})
             if item.mod_reports:
