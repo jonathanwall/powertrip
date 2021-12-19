@@ -192,5 +192,5 @@ class PowerTrip(commands.Cog):
 
     async def send_item_to_channel(self, item):
         embed = await self.create_embed(item)
-        view = await View.create(item)
+        view = await self.create_view(item)
         await self.channel.send(embed=embed, view=view)
