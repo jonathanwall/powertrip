@@ -7,7 +7,7 @@ from discord.ui import Button, View
 
 class BaseButton(Button):
     async def delete_message(self, message):
-        await sleep(1)
+        await sleep(0.5)
         try:
             await message.delete()
         except NotFound:
@@ -25,4 +25,6 @@ class ExceptionView(View):
 
     class ErrorButton(Button):
         def __init__(self, error):
-            super().__init__(label=f"Error: {error}"[:80], disabled=True, style=ButtonStyle.gray)
+            super().__init__(
+                label=f"Error: {error}"[:80], disabled=True, style=ButtonStyle.gray
+            )

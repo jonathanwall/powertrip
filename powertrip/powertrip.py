@@ -4,7 +4,6 @@ from asyncio import sleep
 
 import discord
 from asyncpraw.models.reddit import comment, submission
-from discord.errors import NotFound
 from discord.ext import commands, tasks
 
 from .view import View
@@ -18,7 +17,7 @@ class PowerTrip(commands.Cog):
         self.subreddit = None
         self.stream.start()
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=5)
     async def stream(self):
         new_items = await self.get_new_items()
         for item in new_items:
@@ -75,7 +74,7 @@ class PowerTrip(commands.Cog):
             embed["fields"] += [
                 {
                     "name": "Comment",
-                    "value": f"**[{item.body[:900]}](https://www.reddit.com/{item.permalink})**",
+                    "value": f"**[{item.body[:900]}](https://www.reddit.com{item.permalink})**",
                 },
                 {
                     "name": "Author (Karma)",
@@ -90,7 +89,7 @@ class PowerTrip(commands.Cog):
                 embed["fields"].append(
                     {
                         "name": "In Reply To",
-                        "value": f"[{parent_comment.body}](https://www.reddit.com/{parent_comment.permalink})",
+                        "value": f"[{parent_comment.body}](https://www.reddit.com{parent_comment.permalink})",
                     }
                 )
                 embed["fields"].append(
@@ -105,7 +104,7 @@ class PowerTrip(commands.Cog):
             embed["fields"] += [
                 {
                     "name": "Submission",
-                    "value": f"**[{item.title}](https://www.reddit.com/u/{item.permalink})**",
+                    "value": f"**[{item.title}](https://www.reddit.com{item.permalink})**",
                 },
                 {
                     "name": "Author (Karma)",
@@ -116,7 +115,7 @@ class PowerTrip(commands.Cog):
 
             if item.selftext:
                 selftext = (
-                    f"[{item.selftext[:900]}](https://www.reddit.com/{item.permalink})"
+                    f"[{item.selftext[:900]}](https://www.reddit.com{item.permalink})"
                 )
                 embed["fields"].append({"name": "Selftext", "value": selftext})
 
@@ -163,7 +162,7 @@ class PowerTrip(commands.Cog):
             else:
                 try:
                     await channel[item_id].delete()
-                except NotFound:
+                except discord.errors.NotFound:
                     pass
 
         return reversed(list(queue.values()))
