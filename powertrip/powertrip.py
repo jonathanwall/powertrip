@@ -46,6 +46,8 @@ class PowerTrip(commands.Cog):
         )
         if not self.stream.is_being_cancelled():
             await self.wait_and_restart()
+        await self.channel.purge()
+        await self.channel.send("The modqueue stream has stopped.")
 
     async def wait_and_restart(self, error=None):
         await self.channel.purge()
