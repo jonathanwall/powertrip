@@ -85,22 +85,25 @@ class PowerTrip(commands.Cog):
                 },
             ]
             if item.parent_id.startswith("t1_"):
-                parent_comment = await self.reddit.comment(item.parent_id)
-                await parent_comment.author.load()
+                try:
+                    parent_comment = await self.reddit.comment(item.parent_id)
+                    await parent_comment.author.load()
 
-                embed["fields"].append(
-                    {
-                        "name": "In Reply To",
-                        "value": f"[{parent_comment.body}](https://www.reddit.com{parent_comment.permalink})",
-                    }
-                )
-                embed["fields"].append(
-                    {
-                        "name": "Parent Comment Author",
-                        "value": f"[{parent_comment.author}](https://www.reddit.com/u/{parent_comment.author})"
-                        + f" ({parent_comment.author.comment_karma})",
-                    }
-                )
+                    embed["fields"].append(
+                        {
+                            "name": "In Reply To",
+                            "value": f"[{parent_comment.body}](https://www.reddit.com{parent_comment.permalink})",
+                        }
+                    )
+                    embed["fields"].append(
+                        {
+                            "name": "Parent Comment Author",
+                            "value": f"[{parent_comment.author}](https://www.reddit.com/u/{parent_comment.author})"
+                            + f" ({parent_comment.author.comment_karma})",
+                        }
+                    )
+                except:
+                    pass
 
         if isinstance(item, submission.Submission):
             embed["fields"] += [
