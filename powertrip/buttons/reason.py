@@ -1,8 +1,8 @@
-from .base import BaseButton
+from .button import Button
 from discord.enums import ButtonStyle
 
 
-class ReasonButton(BaseButton):
+class ReasonButton(Button):
     def __init__(self, item, reason):
         style = ButtonStyle.blurple
         label = reason.title
@@ -20,7 +20,9 @@ class ReasonButton(BaseButton):
 
         try:
             await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
-            await self.post.mod.send_removal_message(message, title=title, type=removal_type)
+            await self.post.mod.send_removal_message(
+                message, title=title, type=removal_type
+            )
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:

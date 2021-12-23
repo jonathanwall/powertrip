@@ -1,8 +1,8 @@
-from .base import BaseButton
+from .button import Button
 from discord.enums import ButtonStyle
 
 
-class BanButton(BaseButton):
+class BanButton(Button):
     def __init__(self, item, duration=None):
         if duration is None:
             style = ButtonStyle.red
@@ -17,7 +17,9 @@ class BanButton(BaseButton):
 
     async def callback(self, interaction):
         ban_context = self.item.fullname
-        ban_message = f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})"
+        ban_message = (
+            f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})"
+        )
         ban_note = f"{interaction.user} from PowerTrip"
         ban_reason = f"this is the ban reason"
 

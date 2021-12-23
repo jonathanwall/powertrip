@@ -1,8 +1,8 @@
-from .base import BaseButton
+from .button import Button
 from discord.enums import ButtonStyle
 
 
-class RemoveButton(BaseButton):
+class RemoveButton(Button):
     def __init__(self, item):
         style = ButtonStyle.grey
         label = "Remove"
