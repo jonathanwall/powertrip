@@ -2,7 +2,7 @@ from .button import Button
 from discord.enums import ButtonStyle
 
 
-class ReasonButton(Button):
+class Reason(Button):
     def __init__(self, item, reason):
         style = ButtonStyle.blurple
         label = reason.title

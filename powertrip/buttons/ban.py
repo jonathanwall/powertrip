@@ -2,7 +2,7 @@ from .button import Button
 from discord.enums import ButtonStyle
 
 
-class BanButton(Button):
+class Ban(Button):
     def __init__(self, item, duration=None):
         if duration is None:
             style = ButtonStyle.red

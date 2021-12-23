@@ -2,7 +2,7 @@ from .button import Button
 from discord.enums import ButtonStyle
 
 
-class RemoveButton(Button):
+class Remove(Button):
     def __init__(self, item):
         style = ButtonStyle.grey
         label = "Remove"

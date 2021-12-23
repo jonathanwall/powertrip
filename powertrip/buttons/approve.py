@@ -2,7 +2,7 @@ from .button import Button
 from discord.enums import ButtonStyle
 
 
-class ApproveButton(Button):
+class Approve(Button):
     def __init__(self, item):
         style = ButtonStyle.green
         label = "Approve"
