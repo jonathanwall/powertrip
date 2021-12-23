@@ -12,16 +12,16 @@ class View(View):
         self.item = item
 
     def add_approve_button(self):
-        self.add_item(buttons.ApproveButton(self.item))
+        self.add_item(buttons.Approve(self.item))
 
     def add_remove_button(self):
-        self.add_item(buttons.RemoveButton(self.item))
+        self.add_item(buttons.Remove(self.item))
 
     def add_ban_button(self, duration):
-        self.add_item(buttons.BanButton(self.item, duration))
+        self.add_item(buttons.Ban(self.item, duration))
 
     def add_reason_button(self, reason):
-        self.add_item(buttons.ReasonButton(self.item, reason))
+        self.add_item(buttons.Reason(self.item, reason))
 
     async def add_buttons(self):
         self.add_approve_button()
