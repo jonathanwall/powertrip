@@ -77,13 +77,15 @@ class PowerTrip(commands.Cog):
                 {
                     "name": "Comment",
                     "value": f"**[{item.body[:900]}](https://www.reddit.com{item.permalink})**",
-                },
-                {
-                    "name": "Author (Karma)",
-                    "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-                    + f" ({item.author.comment_karma})",
-                },
-            ]
+                }]
+
+            if hasattr(item.author, "comment_karma"):
+                embed["fields"].append(
+                    {
+                        "name": "Author (Karma)",
+                        "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
+                        + f" ({item.author.comment_karma})",
+                    })
             if item.parent_id.startswith("t1_"):
                 try:
                     parent_comment = await self.reddit.comment(item.parent_id)
