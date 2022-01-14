@@ -7,13 +7,6 @@ from powertrip import PowerTrip
 
 
 def main():
-    try:
-        import uvloop
-    except ImportError:
-        pass
-    else:
-        uvloop.install()
-
     bot = Bot(description="PowerTrip: discord + reddit moderation helper")
     reddit = Reddit()
 
