@@ -9,7 +9,7 @@ from discord.ext import commands, tasks
 from .view import View
 
 
-class PowerTrip(commands.Cog):
+class ModQueueStream(commands.Cog):
     def __init__(self, bot, reddit):
         self.bot = bot
         self.reddit = reddit
