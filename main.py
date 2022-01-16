@@ -1,10 +1,9 @@
 from powertrip import Powertrip
-from powertrip import ModQueueStream
 
 
 def main():
     pt = Powertrip()
-    pt.add_cog(ModQueueStream(pt))
+    pt.load_modqueue()
     pt.run()
 
 
