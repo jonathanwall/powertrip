@@ -10,9 +10,8 @@ from .view import View
 
 
 class ModQueueStream(commands.Cog):
-    def __init__(self, bot, reddit):
+    def __init__(self, bot):
         self.bot = bot
-        self.reddit = reddit
         self.channel = None
         self.subreddit = None
         self.stream.start()
@@ -27,7 +26,7 @@ class ModQueueStream(commands.Cog):
     async def before_stream(self):
         await self.bot.wait_until_ready()
 
-        self.subreddit = await self.reddit.subreddit("mod")
+        self.subreddit = await self.bot.reddit.subreddit("mod")
         self.channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
 
         await self.channel.purge()
@@ -88,7 +87,7 @@ class ModQueueStream(commands.Cog):
                     })
             if item.parent_id.startswith("t1_"):
                 try:
-                    parent_comment = await self.reddit.comment(item.parent_id)
+                    parent_comment = await self.bot.reddit.comment(item.parent_id)
                     await parent_comment.author.load()
 
                     embed["fields"].append(

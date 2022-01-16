@@ -4,7 +4,7 @@ from powertrip import ModQueueStream
 
 def main():
     pt = Powertrip()
-    pt.add_cog(ModQueueStream(pt, pt.reddit))
+    pt.add_cog(ModQueueStream(pt))
     pt.run()
 
 
