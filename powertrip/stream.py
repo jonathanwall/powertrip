@@ -93,7 +93,7 @@ class ModQueueStream(commands.Cog):
                     embed["fields"].append(
                         {
                             "name": "In Reply To",
-                            "value": f"[{parent_comment.body}](https://www.reddit.com{parent_comment.permalink})",
+                            "value": f"[{parent_comment.body[:900]}](https://www.reddit.com{parent_comment.permalink})",
                         }
                     )
                     embed["fields"].append(
