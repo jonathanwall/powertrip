@@ -18,12 +18,12 @@ class Button(Button):
         await message.edit(view=view)
 
     class ExceptionView(View):
-        def __init__(self, error, timeout=None):
+        def __init__(self, exception, timeout=None):
             super().__init__(timeout=timeout)
-            self.add_item(self.ErrorButton(error))
+            self.add_item(self.ExceptionButton(exception))
 
-        class ErrorButton(Button):
-            def __init__(self, error):
+        class ExceptionButton(Button):
+            def __init__(self, exception):
                 super().__init__(
-                    label=f"Error: {error}"[:80], disabled=True, style=ButtonStyle.gray
+                    label=f"Error: {exception}"[:80], disabled=True, style=ButtonStyle.gray
                 )
