@@ -18,9 +18,34 @@ class ModQueueStream(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def stream(self):
-        new_items = await self.get_new_items()
-        for item in new_items:
-            await self.send_item_to_channel(item)
+        queue = {}
+        try:
+            async for item in self.subreddit.mod.modqueue():
+                queue[item.id] = item
+        except Exception as e:
+            await self.wait_and_restart(e)
+
+        channel = {}
+        async for message in self.channel.history():
+            if message.author == self.bot.user:
+                channel[message.embeds[0].footer.text] = message
+
+        if channel.keys() == queue.keys():
+            return {}
+
+        for item_id in channel:
+            if item_id in queue:
+                del queue[item_id]
+            else:
+                try:
+                    await channel[item_id].delete()
+                except discord.errors.NotFound:
+                    pass
+        
+        for item in reversed(list(queue.values())):
+            embed = await self.create_embed(item)
+            view = await self.create_view(item)
+            await self.channel.send(embed=embed, view=view)
 
     @stream.before_loop
     async def before_stream(self):
@@ -38,11 +63,6 @@ class ModQueueStream(commands.Cog):
 
     @stream.after_loop
     async def after_stream(self):
-        await self.bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, name="nothing. I'm broken."
-            )
-        )
         if not self.stream.is_being_cancelled():
             await self.wait_and_restart()
         await self.channel.purge()
@@ -154,47 +174,3 @@ class ModQueueStream(commands.Cog):
         await view.add_buttons()
 
         return view
-
-    async def get_new_items(self):
-        queue = await self.get_queue_items()
-        channel = await self.get_channel_items()
-
-        if channel.keys() == queue.keys():
-            return {}
-
-        for item_id in channel:
-            if item_id in queue:
-                del queue[item_id]
-            else:
-                try:
-                    await channel[item_id].delete()
-                except discord.errors.NotFound:
-                    pass
-
-        return reversed(list(queue.values()))
-
-    async def get_queue_items(self):
-        queue_items = {}
-        try:
-            async for item in self.subreddit.mod.modqueue():
-                queue_items[item.id] = item
-        except Exception as e:
-            await self.wait_and_restart(e)
-
-        return queue_items
-
-    async def get_channel_items(self):
-        channel_items = {}
-        try:
-            async for message in self.channel.history():
-                if message.author == self.bot.user:
-                    channel_items[message.embeds[0].footer.text] = message
-        except Exception as e:
-            await self.wait_and_restart(e)
-
-        return channel_items
-
-    async def send_item_to_channel(self, item):
-        embed = await self.create_embed(item)
-        view = await self.create_view(item)
-        await self.channel.send(embed=embed, view=view)
