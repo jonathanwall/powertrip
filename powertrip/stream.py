@@ -41,7 +41,7 @@ class ModQueueStream(commands.Cog):
                     await channel[item_id].delete()
                 except discord.errors.NotFound:
                     pass
-        
+
         for item in reversed(list(queue.values())):
             embed = await self.create_embed(item)
             view = await self.create_view(item)
@@ -96,7 +96,8 @@ class ModQueueStream(commands.Cog):
                 {
                     "name": "Comment",
                     "value": f"**[{item.body[:900]}](https://www.reddit.com{item.permalink})**",
-                }]
+                }
+            ]
 
             if hasattr(item.author, "comment_karma"):
                 embed["fields"].append(
@@ -104,7 +105,8 @@ class ModQueueStream(commands.Cog):
                         "name": "Author (Karma)",
                         "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
                         + f" ({item.author.comment_karma})",
-                    })
+                    }
+                )
             if item.parent_id.startswith("t1_"):
                 try:
                     parent_comment = await self.bot.reddit.comment(item.parent_id)

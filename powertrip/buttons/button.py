@@ -25,5 +25,7 @@ class Button(Button):
         class ExceptionButton(Button):
             def __init__(self, exception):
                 super().__init__(
-                    label=f"Error: {exception}"[:80], disabled=True, style=ButtonStyle.gray
+                    label=f"Error: {exception}"[:80],
+                    disabled=True,
+                    style=ButtonStyle.gray,
                 )
