@@ -39,7 +39,7 @@ class ModQueueStream(commands.Cog):
             else:
                 try:
                     await channel[item_id].delete()
-                except discord.errors.NotFound:
+                except discord.NotFound:
                     pass
 
         for item in reversed(list(queue.values())):
