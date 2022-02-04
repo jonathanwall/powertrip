@@ -3,7 +3,6 @@ from powertrip import Powertrip
 
 def main():
     pt = Powertrip()
-    pt.load_modqueue()
     pt.run()
 
 
