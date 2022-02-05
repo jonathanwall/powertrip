@@ -6,7 +6,7 @@ import discord
 from asyncpraw.models.reddit import comment, submission
 from discord.ext import commands, tasks
 
-from .view import View
+from ..views.view import View
 
 
 class ModQueueStream(commands.Cog):

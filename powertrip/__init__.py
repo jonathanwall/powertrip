@@ -1,2 +1,2 @@
-from .stream import ModQueueStream
+from .streams.modqueue import ModQueueStream
 from .powertrip import Powertrip
