@@ -10,7 +10,7 @@ from .embed import create_embed
 from .view import create_view
 
 
-class Stream(commands.Cog):
+class ModQueueStream(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.channel = None
