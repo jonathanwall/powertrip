@@ -29,3 +29,22 @@ class View(discord.ui.View):
             for duration in durations:
                 self.add_item(buttons.Ban(duration))
         return self
+
+
+async def modqueue(item):
+    view = View(item)
+    view.add_item(buttons.Approve())
+    view.add_item(buttons.Remove())
+    if isinstance(view.item, submission.Submission):
+        async for reason in view.item.subreddit.mod.removal_reasons:
+            view.add_item(buttons.Reason(reason))
+    if isinstance(view.item, comment.Comment):
+        durations = (
+            os.environ["pt_ban_durations"].split(",")
+            if "pt_ban_durations" in os.environ
+            else [3, 7, 28]
+        )
+        durations += [None]
+        for duration in durations:
+            view.add_item(buttons.Ban(duration))
+    return view
