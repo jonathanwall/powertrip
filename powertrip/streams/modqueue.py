@@ -6,10 +6,10 @@ import discord
 from asyncpraw.models.reddit import comment, submission
 from discord.ext import commands, tasks
 
-from ..views.view import View
+from .. import views
 
 
-class ModQueueStream(commands.Cog):
+class ModQueue(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.channel = None
@@ -172,7 +172,7 @@ class ModQueueStream(commands.Cog):
         return discord.Embed.from_dict(embed)
 
     async def create_view(self, item):
-        view = View(item)
+        view = views.View(item)
         await view.add_buttons()
 
         return view

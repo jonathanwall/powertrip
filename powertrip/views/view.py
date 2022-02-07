@@ -3,7 +3,7 @@ import os
 from asyncpraw.models.reddit import comment, submission
 from discord.ui import View
 
-from powertrip import buttons
+from . import buttons
 
 
 class View(View):

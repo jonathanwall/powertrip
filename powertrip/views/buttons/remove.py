@@ -13,7 +13,7 @@ class Remove(Button):
     async def callback(self, interaction):
         try:
             await self.item.mod.remove()
-        except Exception:
-            await self.handle_exception(interaction.message, Exception)
+        except Exception as e:
+            await self.handle_exception(interaction.message, e)
         else:
             await self.delete_message(interaction.message)
