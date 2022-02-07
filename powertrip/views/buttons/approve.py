@@ -3,17 +3,16 @@ from discord.enums import ButtonStyle
 
 
 class Approve(Button):
-    def __init__(self, item):
+    def __init__(self):
         style = ButtonStyle.green
         label = "Approve"
 
         super().__init__(style=style, label=label)
-        self.item = item
 
     async def callback(self, interaction):
         try:
-            await self.item.mod.unlock()
-            await self.item.mod.approve()
+            await self.view.item.mod.unlock()
+            await self.view.item.mod.approve()
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:

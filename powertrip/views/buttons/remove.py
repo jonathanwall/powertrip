@@ -3,16 +3,15 @@ from discord.enums import ButtonStyle
 
 
 class Remove(Button):
-    def __init__(self, item):
+    def __init__(self):
         style = ButtonStyle.grey
         label = "Remove"
 
         super().__init__(style=style, label=label)
-        self.item = item
 
     async def callback(self, interaction):
         try:
-            await self.item.mod.remove()
+            await self.view.item.mod.remove()
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:

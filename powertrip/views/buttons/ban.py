@@ -3,7 +3,7 @@ from discord.enums import ButtonStyle
 
 
 class Ban(Button):
-    def __init__(self, item, duration=None):
+    def __init__(self, duration=None):
         if duration is None:
             style = ButtonStyle.red
             label = f"Permanent Ban"
@@ -12,14 +12,11 @@ class Ban(Button):
             label = f"{duration} Day Ban"
 
         super().__init__(style=style, label=label)
-        self.item = item
         self.duration = duration
 
     async def callback(self, interaction):
-        ban_context = self.item.fullname
-        ban_message = (
-            f"[{self.item.body}](https://www.reddit.com/{self.item.permalink})"
-        )
+        ban_context = self.view.item.fullname
+        ban_message = f"[{self.view.item.body}](https://www.reddit.com/{self.view.item.permalink})"
         ban_note = f"{interaction.user} from PowerTrip"
         ban_reason = f"this is the ban reason"
 
@@ -33,8 +30,10 @@ class Ban(Button):
             ban_options["duration"] = self.duration
 
         try:
-            await self.item.mod.remove()
-            await self.item.subreddit.banned.add(self.item.author.name, **ban_options)
+            await self.view.item.mod.remove()
+            await self.view.item.subreddit.banned.add(
+                self.view.item.author.name, **ban_options
+            )
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:

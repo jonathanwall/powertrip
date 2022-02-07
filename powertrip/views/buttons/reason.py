@@ -3,12 +3,11 @@ from discord.enums import ButtonStyle
 
 
 class Reason(Button):
-    def __init__(self, item, reason):
+    def __init__(self, reason):
         style = ButtonStyle.blurple
         label = reason.title
 
         super().__init__(style=style, label=label)
-        self.post = item
         self.reason = reason
 
     async def callback(self, interaction):
@@ -19,8 +18,8 @@ class Reason(Button):
         removal_type = "private"
 
         try:
-            await self.post.mod.remove(mod_note=mod_note, reason_id=reason_id)
-            await self.post.mod.send_removal_message(
+            await self.view.item.mod.remove(mod_note=mod_note, reason_id=reason_id)
+            await self.view.item.mod.send_removal_message(
                 message, title=title, type=removal_type
             )
         except Exception as e:

@@ -18,6 +18,7 @@ class ModQueue(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def stream(self):
+        # get queue
         queue = {}
         try:
             async for item in self.subreddit.mod.modqueue():
@@ -25,14 +26,17 @@ class ModQueue(commands.Cog):
         except Exception as e:
             await self.wait_and_restart(e)
 
+        # get channel
         channel = {}
         async for message in self.channel.history():
             if message.author == self.bot.user:
                 channel[message.embeds[0].footer.text] = message
 
+        # if they match, skip
         if channel.keys() == queue.keys():
-            return {}
+            return
 
+        # delete existing channel items from the queue
         for item_id in channel:
             if item_id in queue:
                 del queue[item_id]
@@ -42,6 +46,7 @@ class ModQueue(commands.Cog):
                 except discord.NotFound:
                     pass
 
+        # send each new queue item to the channel
         for item in reversed(list(queue.values())):
             embed = await self.create_embed(item)
             view = await self.create_view(item)
