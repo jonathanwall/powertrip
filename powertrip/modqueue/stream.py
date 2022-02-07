@@ -1,15 +1,16 @@
 import datetime
 import os
 from asyncio import sleep
+from venv import create
 
 import discord
 from discord.ext import commands, tasks
 
-from .. import views
-from .. import embeds
+from .embed import create_embed
+from .view import create_view
 
 
-class ModQueue(commands.Cog):
+class Stream(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.channel = None
@@ -18,7 +19,6 @@ class ModQueue(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def stream(self):
-        # get queue
         queue = {}
         try:
             async for item in self.subreddit.mod.modqueue():
@@ -26,17 +26,14 @@ class ModQueue(commands.Cog):
         except Exception as e:
             await self.wait_and_restart(e)
 
-        # get channel
         channel = {}
         async for message in self.channel.history():
             if message.author == self.bot.user:
                 channel[message.embeds[0].footer.text] = message
 
-        # if they match, skip
         if channel.keys() == queue.keys():
             return
 
-        # delete existing channel items from the queue
         for item_id in channel:
             if item_id in queue:
                 del queue[item_id]
@@ -46,10 +43,9 @@ class ModQueue(commands.Cog):
                 except discord.NotFound:
                     pass
 
-        # send each new queue item to the channel
         for item in reversed(list(queue.values())):
-            embed = await embeds.create(item)
-            view = await views.modqueue(item)
+            embed = await create_embed(item)
+            view = await create_view(item)
             await self.channel.send(embed=embed, view=view)
 
     @stream.before_loop

@@ -3,7 +3,7 @@ import datetime
 from asyncpraw.models.reddit import comment, submission
 
 
-async def create(item):
+async def create_embed(item):
     await item.author.load()
     timestamp = datetime.datetime.fromtimestamp(item.created_utc).isoformat()
 
