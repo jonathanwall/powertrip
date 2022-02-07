@@ -49,7 +49,7 @@ class ModQueue(commands.Cog):
         # send each new queue item to the channel
         for item in reversed(list(queue.values())):
             embed = await self.create_embed(item)
-            view = await self.create_view(item)
+            view = await views.View.modqueue(item)
             await self.channel.send(embed=embed, view=view)
 
     @stream.before_loop
@@ -175,9 +175,3 @@ class ModQueue(commands.Cog):
                 embed["fields"].append({"name": "Mod Reports", "value": mod_report})
 
         return discord.Embed.from_dict(embed)
-
-    async def create_view(self, item):
-        view = views.View(item)
-        await view.add_buttons()
-
-        return view

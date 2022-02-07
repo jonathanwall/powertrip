@@ -11,7 +11,9 @@ class View(discord.ui.View):
         super().__init__(timeout=timeout)
         self.item = item
 
-    async def add_buttons(self):
+    @classmethod
+    async def modqueue(cls, item, timeout=None):
+        self = cls(item, timeout=timeout)
         self.add_item(buttons.Approve())
         self.add_item(buttons.Remove())
         if isinstance(self.item, submission.Submission):
@@ -26,3 +28,4 @@ class View(discord.ui.View):
             durations += [None]
             for duration in durations:
                 self.add_item(buttons.Ban(duration))
+        return self
