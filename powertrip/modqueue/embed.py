@@ -4,7 +4,10 @@ from asyncpraw.models.reddit import comment, submission
 
 
 async def create_embed(item):
-    await item.author.load()
+    try:
+        await item.author.load()
+    except:
+        pass
     timestamp = datetime.datetime.fromtimestamp(item.created_utc).isoformat()
 
     embed = {
@@ -25,31 +28,10 @@ async def create_embed(item):
         if hasattr(item.author, "comment_karma"):
             embed["fields"].append(
                 {
-                    "name": "Author (Karma)",
-                    "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-                    + f" ({item.author.comment_karma})",
+                    "name": "Author",
+                    "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**",
                 }
             )
-        if item.parent_id.startswith("t1_"):
-            try:
-                parent_comment = await self.bot.reddit.comment(item.parent_id)
-                await parent_comment.author.load()
-
-                embed["fields"].append(
-                    {
-                        "name": "In Reply To",
-                        "value": f"[{parent_comment.body[:900]}](https://www.reddit.com{parent_comment.permalink})",
-                    }
-                )
-                embed["fields"].append(
-                    {
-                        "name": "Parent Comment Author",
-                        "value": f"[{parent_comment.author}](https://www.reddit.com/u/{parent_comment.author})"
-                        + f" ({parent_comment.author.comment_karma})",
-                    }
-                )
-            except:
-                pass
 
     if isinstance(item, submission.Submission):
         embed["fields"] += [
@@ -58,9 +40,8 @@ async def create_embed(item):
                 "value": f"**[{item.title}](https://www.reddit.com{item.permalink})**",
             },
             {
-                "name": "Author (Karma)",
-                "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-                + f" ({item.author.link_karma})",
+                "name": "Author",
+                "value": f"**[{item.author}](https://www.reddit.com/u/{item.author})**",
             },
         ]
 
