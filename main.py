@@ -22,17 +22,10 @@ class Approve(discord.ui.Button):
         except Exception as e:
             await self.handle_exception(interaction.message, e)
         else:
-            await self.delete_message(interaction.message)
+            await interaction.message.delete(defer=0.5)
 
 
 class Button(discord.ui.Button):
-    async def delete_message(self, message):
-        await sleep(0.5)
-        try:
-            await message.delete()
-        except discord.NotFound:
-            pass
-
     async def handle_exception(self, message, exception):
         view = Button.ExceptionView(exception)
         await message.edit(view=view)
@@ -149,16 +142,10 @@ class ModQueueStream(commands.Cog):
             if message.author == self.bot.user:
                 discord_queue[message.embeds[0].footer.text] = message
             else:
-                try:
-                    await message.delete()
-                except (discord.Forbidden, discord.NotFound):
-                    pass
+                await message.delete(defer=0)
 
         reddit_queue = {}
-        try:
-            subreddit = await self.bot.reddit.subreddit("mod")
-        except Exception as e:
-            pass
+        subreddit = await self.bot.reddit.subreddit("mod")
         try:
             async for item in subreddit.mod.modqueue():
                 reddit_queue[item.id] = item
@@ -172,14 +159,11 @@ class ModQueueStream(commands.Cog):
             if item_id in reddit_queue:
                 del reddit_queue[item_id]
             else:
-                try:
-                    await discord_queue[item_id].delete()
-                except discord.NotFound:
-                    pass
+                await discord_queue[item_id].delete(defer=0)
 
         for item in reversed(list(reddit_queue.values())):
-            embed = await create_embed(item)
-            view = await create_view(item)
+            embed = {}
+            view = {}
             await channel.send(embed=embed, view=view)
 
     @stream.before_loop
