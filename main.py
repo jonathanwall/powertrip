@@ -41,7 +41,7 @@ class View(discord.ui.View):
             async def callback(self, interaction):
                 mod_note = f"{interaction.user.display_name} via PowerTrip"
 
-                if self.view.reason:
+                if self.view.reason is not None:
                     await self.view.item.mod.remove(
                         mod_note=mod_note, reason_id=self.view.reason.id
                     )
@@ -53,28 +53,30 @@ class View(discord.ui.View):
                 else:
                     await self.view.item.mod.remove(mod_note=mod_note)
 
-                if self.view.ban:
-                    # if no duration is set, the ban will be permanent
-                    if self.view.ban != "Perm":
-                        # integer between 1 and 999, length of ban in days
-                        ban_options["duration"] = self.view.ban
+                if self.view.ban is not None:
+                    # banning is poorly documented on praw and reddit api
+                    ban_options = {}
 
-                    ban_message = ""
-
-                    ban_options = {
-                        # raw markodown text, sent to the user
-                        "ban_message": ban_message,
-                        # fullname of a thing
-                        "ban_context": self.view.item.fullname,
-                        # a string no longer than 300 characters, not sent to the user
-                        "note": mod_note[:300],
-                    }
-                    if self.view.reason:
+                    if self.view.reason is not None:
                         # string no longer than 100 characters, not sent to the user
                         ban_options["ban_reason"] = self.view.reason.title[:100]
 
+                    # if no duration is set, the ban will be permanent
+                    if self.view.ban != "Perm":
+                        # integer between 1 and 999, length of ban in days
+                        ban_options["duration"] = int(self.view.ban)
+
+                    # raw markodown text, sent to the user
+                    ban_options["ban_message"] = ""
+
+                    # fullname of a thing
+                    ban_options["ban_context"] = self.view.item.fullname
+
+                    # a string no longer than 300 characters, not sent to the user
+                    ban_options["note"] = mod_note[:300]
+
                     await self.view.item.subreddit.banned.add(
-                        self.view.item.author.name, **ban_options
+                        self.view.item.author, **ban_options
                     )
 
                 await interaction.message.delete(delay=0.25)
@@ -93,7 +95,7 @@ class View(discord.ui.View):
                     reason = await subreddit.mod.removal_reasons.get_reason(
                         reason_id=reason_id
                     )
-                except:
+                except asyncpraw.exceptions.ClientException:
                     reason = None
                 self.view.reason = reason
 
@@ -126,7 +128,7 @@ class View(discord.ui.View):
         options = [discord.SelectOption(label="Don't Ban", value="None", default=True)]
         for duration in durations:
             options.append(
-                discord.SelectOption(label=f"{duration} Day Ban", value=duration)
+                discord.SelectOption(label=f"{duration} Day Ban", value=int(duration)
             )
         options.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
 
