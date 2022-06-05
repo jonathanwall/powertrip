@@ -8,7 +8,7 @@ import asyncpraw
 from asyncpraw.models.reddit import comment, submission
 from discord.ext import commands, tasks
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 log = logging.getLogger(__name__)
 
 
@@ -18,13 +18,15 @@ class View(discord.ui.View):
         self.item = item
         self.reason = None
         self.ban = None
-        self.add_approve_button()
-        self.add_removal_button()
+        self.approve_button()
+        self.remove_button()
 
-    def add_approve_button(self):
+    def approve_button(self):
         class ApproveButton(discord.ui.Button):
             def __init__(self):
-                super().__init__(label="Approve", style=discord.ButtonStyle.blurple)
+                super().__init__(
+                    label="Approve", style=discord.ButtonStyle.blurple, row=4
+                )
 
             async def callback(self, interaction):
                 await self.view.item.approve()
@@ -32,25 +34,25 @@ class View(discord.ui.View):
 
         self.add_item(ApproveButton())
 
-    def add_remove_button(self):
+    def remove_button(self):
         class RemoveButton(discord.ui.Button):
             def __init__(self):
-                super().__init__(label="Remove", style=discord.ButtonStyle.red)
+                super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
 
             async def callback(self, interaction):
-                self.view.clear_items()
-                await self.view.add_reason_select()
-                await self.view.add_ban_select()
-                self.view.add_approve_button()
-                self.view.add_final_remove_button()
+                self.view.remove_item(self)
+                self.view.final_remove_button()
+                await self.view.reason_select()
+                await self.view.ban_select()
+
                 await interaction.message.edit(view=self.view)
 
         self.add_item(RemoveButton())
 
-    def add_final_remove_button(self):
+    def final_remove_button(self):
         class FinalRemoveButton(discord.ui.Button):
             def __init__(self):
-                super().__init__(label="Remove", style=discord.ButtonStyle.red)
+                super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
 
             async def callback(self, interaction):
                 mod_note = f"{interaction.user.display_name} via PowerTrip"
@@ -94,10 +96,10 @@ class View(discord.ui.View):
 
         self.add_item(FinalRemoveButton())
 
-    async def add_reason_select(self):
+    async def reason_select(self):
         class ReasonSelect(discord.ui.Select):
             def __init__(self, options):
-                super().__init__(min_values=1, max_values=1, options=options)
+                super().__init__(min_values=1, max_values=1, options=options, row=0)
 
             async def callback(self, interaction):
                 try:
@@ -106,7 +108,7 @@ class View(discord.ui.View):
                     reason = await subreddit.mod.removal_reasons.get_reason(
                         reason_id=reason_id
                     )
-                except Exception:
+                except:
                     reason = None
                 self.view.reason = reason
 
@@ -119,10 +121,10 @@ class View(discord.ui.View):
         reason_select = ReasonSelect(options=options)
         self.add_item(reason_select)
 
-    async def add_ban_select(self):
+    async def ban_select(self):
         class BanSelect(discord.ui.Select):
             def __init__(self, options):
-                super().__init__(min_values=1, max_values=1, options=options)
+                super().__init__(min_values=1, max_values=1, options=options, row=1)
 
             async def callback(self, interaction):
                 duration = self.values[0]
