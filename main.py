@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-from asyncio import sleep
 
 import discord
 import asyncpraw
@@ -18,36 +17,21 @@ class View(discord.ui.View):
         self.item = item
         self.reason = None
         self.ban = None
-        self.approve_button()
-        self.remove_button()
 
-    def approve_button(self):
-        class ApproveButton(discord.ui.Button):
-            def __init__(self):
-                super().__init__(
-                    label="Approve", style=discord.ButtonStyle.blurple, row=4
-                )
+    @discord.ui.button(label="Approve", style=discord.ButtonStyle.blurple, row=4)
+    async def approve(self, button, interaction):
+        await self.item.approve()
 
-            async def callback(self, interaction):
-                await self.view.item.approve()
-                await interaction.message.delete(delay=0.25)
+        await interaction.message.delete(delay=0.25)
 
-        self.add_item(ApproveButton())
+    @discord.ui.button(label="Remove", style=discord.ButtonStyle.red, row=4)
+    async def remove(self, button, interaction):
+        self.remove_item(button)
+        self.final_remove_button()
+        await self.reason_select()
+        await self.ban_select()
 
-    def remove_button(self):
-        class RemoveButton(discord.ui.Button):
-            def __init__(self):
-                super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
-
-            async def callback(self, interaction):
-                self.view.remove_item(self)
-                self.view.final_remove_button()
-                await self.view.reason_select()
-                await self.view.ban_select()
-
-                await interaction.message.edit(view=self.view)
-
-        self.add_item(RemoveButton())
+        await interaction.message.edit(view=self)
 
     def final_remove_button(self):
         class FinalRemoveButton(discord.ui.Button):
@@ -70,23 +54,24 @@ class View(discord.ui.View):
                     await self.view.item.mod.remove(mod_note=mod_note)
 
                 if self.view.ban:
-                    if isinstance(
-                        self.view.item, asyncpraw.models.reddit.comment.Comment
-                    ):
-                        log.info(f"item is a comment")
+                    # if no duration is set, the ban will be permanent
+                    if self.view.ban != "Perm":
+                        # integer between 1 and 999, length of ban in days
+                        ban_options["duration"] = self.view.ban
+
                     ban_message = ""
 
                     ban_options = {
+                        # raw markodown text, sent to the user
                         "ban_message": ban_message,
+                        # fullname of a thing
                         "ban_context": self.view.item.fullname,
+                        # a string no longer than 300 characters, not sent to the user
+                        "note": mod_note[:300],
                     }
                     if self.view.reason:
-                        ban_options["ban_reason"] = self.view.reason.title
-
-                    # if no duration is set, the ban will be permanent
-                    duration = self.view.ban
-                    if duration != 0:
-                        ban_options["duration"] = duration
+                        # string no longer than 100 characters, not sent to the user
+                        ban_options["ban_reason"] = self.view.reason.title[:100]
 
                     await self.view.item.subreddit.banned.add(
                         self.view.item.author.name, **ban_options
@@ -128,7 +113,10 @@ class View(discord.ui.View):
 
             async def callback(self, interaction):
                 duration = self.values[0]
-                self.view.ban = duration
+                if duration == "None":
+                    self.view.ban = None
+                else:
+                    self.view.ban = duration
 
         durations = (
             os.environ["pt_ban_durations"].split(",")
@@ -140,7 +128,7 @@ class View(discord.ui.View):
             options.append(
                 discord.SelectOption(label=f"{duration} Day Ban", value=duration)
             )
-        options.append(discord.SelectOption(label="Permanent Ban", value=0))
+        options.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
 
         ban_select = BanSelect(options=options)
         self.add_item(ban_select)
