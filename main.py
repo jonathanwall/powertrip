@@ -128,7 +128,7 @@ class View(discord.ui.View):
         options = [discord.SelectOption(label="Don't Ban", value="None", default=True)]
         for duration in durations:
             options.append(
-                discord.SelectOption(label=f"{duration} Day Ban", value=int(duration)
+                discord.SelectOption(label=f"{duration} Day Ban", value=int(duration))
             )
         options.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
 
