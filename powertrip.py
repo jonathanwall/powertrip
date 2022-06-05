@@ -1,8 +1,9 @@
 import logging
 import os
 
-import discord
 import asyncpraw
+import discord
+
 from modqueue import stream
 
 logging.basicConfig(level=logging.WARN)

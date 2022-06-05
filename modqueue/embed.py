@@ -1,5 +1,5 @@
 import discord
-import datetime
+from datetime import datetime
 from asyncpraw.models.reddit import comment, submission
 
 
@@ -7,7 +7,7 @@ class Embed(discord.Embed):
     def __init__(self, item):
         super().__init__()
         self.color = 0xDA655F
-        self.timestamp = datetime.datetime.fromtimestamp(item.created_utc)
+        self.timestamp = datetime.fromtimestamp(item.created_utc)
         self.set_footer(text=item.id)
         if isinstance(item, comment.Comment):
             self.add_field(
@@ -28,7 +28,7 @@ class Embed(discord.Embed):
                     f"[{item.selftext[:900]}]"
                     + f"(https://www.reddit.com{item.permalink})"
                 )
-                self.add_field(name="Selftext", value=selftext, inline=False)
+                self.add_field(name="Submission Text", value=selftext, inline=False)
 
             if item.url.endswith((".jpg", ".jpeg", ".gif", ".gifv", ".png", ".svg")):
                 image_url = item.url
