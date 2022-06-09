@@ -37,6 +37,7 @@ class RemoveButton(discord.ui.Button):
         )
         async for reason in self.view.item.subreddit.mod.removal_reasons:
             reasons.append(discord.SelectOption(label=reason.title, value=reason.id))
+
         self.view.add_item(ReasonSelect(options=reasons))
 
         durations = (
@@ -49,6 +50,7 @@ class RemoveButton(discord.ui.Button):
             option = discord.SelectOption(label=f"{duration} Day Ban", value=duration)
             bans.append(option)
         bans.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
+
         self.view.add_item(BanSelect(options=bans))
 
         await interaction.message.edit(view=self.view)
