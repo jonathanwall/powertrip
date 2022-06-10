@@ -6,8 +6,12 @@ import discord
 
 from modqueue import stream
 
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
+
+logging.getLogger("discord").setLevel(logging.WARN)
+logging.getLogger("asyncpraw").setLevel(logging.WARN)
+logging.getLogger("asyncprawcore").setLevel(logging.WARN)
 
 
 class Powertrip(discord.Bot):

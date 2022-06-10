@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 
 import discord
@@ -6,6 +7,8 @@ from discord.ext import commands, tasks
 
 from .embed import Embed
 from .view import View
+
+log = logging.getLogger(__name__)
 
 
 class ModQueueStream(commands.Cog):
@@ -16,7 +19,9 @@ class ModQueueStream(commands.Cog):
     @tasks.loop(seconds=5)
     async def stream(self):
         reddit_queue = {}
+
         subreddit = await self.bot.reddit.subreddit("mod")
+
         async for item in subreddit.mod.modqueue():
             if item.author is None:
                 await item.mod.remove(mod_note="Redditor is deleted or shadowbanned.")
@@ -24,7 +29,9 @@ class ModQueueStream(commands.Cog):
                 reddit_queue[item.id] = item
 
         discord_queue = {}
+
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
+
         async for message in channel.history():
             if message.author == self.bot.user:
                 try:
@@ -57,8 +64,12 @@ class ModQueueStream(commands.Cog):
     @stream.error
     async def error(self, error):
         await self.bot.change_presence()
+
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
         await channel.purge()
+
         await channel.send(f"An error has occurred:\n{error}\nRestarting in 5 minutes.")
+
         await asyncio.sleep(300)
+
         self.stream.restart()

@@ -1,6 +1,10 @@
-import discord
+import logging
 from datetime import datetime
+
+import discord
 from asyncpraw.models.reddit import comment, submission
+
+log = logging.getLogger(__name__)
 
 
 class Embed(discord.Embed):

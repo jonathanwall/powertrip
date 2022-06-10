@@ -1,7 +1,10 @@
+import logging
 import os
 
 import discord
 from asyncpraw.models.reddit import comment, submission
+
+log = logging.getLogger(__name__)
 
 
 class View(discord.ui.View):
@@ -68,7 +71,7 @@ class FinalRemoveButton(discord.ui.Button):
             await self.view.item.mod.remove(
                 mod_note=mod_note, reason_id=self.view.reason.id
             )
-            await self.view.mod.send_removal_message(
+            await self.item.mod.send_removal_message(
                 self.view.reason.message,
                 title=self.view.reason.title,
                 type="private",
