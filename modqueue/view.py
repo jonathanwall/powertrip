@@ -22,7 +22,7 @@ class ApproveButton(discord.ui.Button):
         super().__init__(label="Approve", style=discord.ButtonStyle.blurple, row=4)
 
     async def callback(self, interaction):
-        await self.view.item.approve()
+        await self.view.item.mod.approve()
 
         await interaction.message.delete(delay=0.25)
 
