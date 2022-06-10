@@ -1,6 +1,7 @@
 import os
 
 import discord
+from asyncpraw.models.reddit import comment, submission
 
 
 class View(discord.ui.View):
@@ -76,26 +77,40 @@ class FinalRemoveButton(discord.ui.Button):
             await self.view.item.mod.remove(mod_note=mod_note)
 
         if self.view.ban is not None:
-            # banning is poorly documented on praw and reddit api docs
             ban_options = {}
-
-            if self.view.reason is not None:
-                # string no longer than 100 characters, not sent to the user
-                ban_options["ban_reason"] = self.view.reason.title[:100]
+            ban_options["note"] = mod_note[:300]
+            ban_options["ban_context"] = self.view.item.fullname
 
             # if no duration is set, the ban will be permanent
             if self.view.ban != "Perm":
                 if self.view.ban >= 1 and self.view.ban <= 999:
                     ban_options["duration"] = int(self.view.ban)
 
-            # raw markodown text, sent to the user
-            ban_options["ban_message"] = ""
+            ban_message = ""
 
-            # fullname of a thing
-            ban_options["ban_context"] = self.view.item.fullname
+            if isinstance(self.view.item, comment.Comment):
+                ban_message += (
+                    "You have been banned for the following comment:"
+                    + f"\n[{self.view.item.body}]"
+                    + f"(https://www.reddit.com/{self.view.item.permalink})"
+                )
 
-            # a string no longer than 300 characters, not sent to the user
-            ban_options["note"] = mod_note[:300]
+            if isinstance(self.view.item, submission.Submission):
+                ban_message += (
+                    "You have been banned for the following submission:"
+                    + f"\n[{self.view.item.title}]"
+                    + f"(https://www.reddit.com/{self.view.item.permalink})"
+                )
+
+            if self.view.reason is not None:
+                ban_options["ban_reason"] = self.view.reason.title[:100]
+
+                ban_message += (
+                    f"\nThe moderator provided the following reason:"
+                    + f" **{self.view.reason.title}**"
+                )
+
+            ban_options["ban_message"] = ban_message
 
             await self.view.item.subreddit.banned.add(
                 self.view.item.author, **ban_options

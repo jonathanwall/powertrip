@@ -47,6 +47,7 @@ class ModQueueStream(commands.Cog):
     @stream.before_loop
     async def before_stream(self):
         await self.bot.wait_until_ready()
+
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
         await channel.purge()
 
@@ -58,8 +59,6 @@ class ModQueueStream(commands.Cog):
         await self.bot.change_presence()
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
         await channel.purge()
-        await channel.send(
-            f"An error has occurred:\n{error}\n Restarting in 5 minutes."
-        )
+        await channel.send(f"An error has occurred:\n{error}\nRestarting in 5 minutes.")
         await asyncio.sleep(300)
         self.stream.restart()
