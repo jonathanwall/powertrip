@@ -24,7 +24,7 @@ class ApproveButton(discord.ui.Button):
     async def callback(self, interaction):
         await self.view.item.mod.approve()
 
-        await interaction.message.delete(delay=0.25)
+        await interaction.message.delete(delay=0)
 
 
 class RemoveButton(discord.ui.Button):
@@ -119,7 +119,7 @@ class FinalRemoveButton(discord.ui.Button):
                 self.view.item.author, **ban_options
             )
 
-        await interaction.message.delete(delay=0.25)
+        await interaction.message.delete(delay=0)
 
 
 class ReasonSelect(discord.ui.Select):
