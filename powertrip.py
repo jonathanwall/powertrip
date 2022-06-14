@@ -28,17 +28,20 @@ class Powertrip(discord.Bot):
     async def on_connect(self):
         log.info("on_connect")
 
-    async def on_disconnect(self):
-        log.info("on_disconnect")
-
-    async def on_interaction(self, interaction):
-        log.info("on_interaction")
-
     async def on_ready(self):
         log.info("on_ready")
 
+    async def on_interaction(self, interaction):
+        # log.info("on_interaction")
+        pass
+
+    async def on_disconnect(self):
+        # log.info("on_disconnect")
+        pass
+
     async def on_resumed(self):
-        log.info("on_resumed")
+        # log.info("on_resumed")
+        pass
 
 
 def main():
