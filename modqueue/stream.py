@@ -54,6 +54,7 @@ class ModQueueStream(commands.Cog):
     @stream.before_loop
     async def before_stream(self):
         log.info("before_stream")
+
         await self.bot.wait_until_ready()
 
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -65,7 +66,13 @@ class ModQueueStream(commands.Cog):
     @stream.after_loop
     async def after_stream(self):
         log.info("after_stream")
+
+        if self.stream.is_being_cancelled():
+            log.info("is_being_cancelled")
+
         await self.bot.change_presence()
+
+        self.stream.restart()
 
     @stream.error
     async def error(self, error):
