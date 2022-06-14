@@ -1,4 +1,5 @@
 import logging
+import operator
 import os
 
 import discord
@@ -49,12 +50,12 @@ class RemoveButton(discord.ui.Button):
         self.view.add_item(FinalRemoveButton())
 
         reasons = []
-        reasons.append(
-            discord.SelectOption(label="No Reason", value="None", default=True)
-        )
+        reasons.append(discord.SelectOption(label="No Reason", value=".", default=True))
         async for reason in self.view.item.subreddit.mod.removal_reasons:
             reasons.append(discord.SelectOption(label=reason.title, value=reason.id))
-        reasons.sort(key=reason.id)
+
+        reasons.sort(key=operator.attrgetter("value"), reverse=True)
+
         self.view.add_item(ReasonSelect(options=reasons))
 
         durations = (
