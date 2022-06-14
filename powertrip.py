@@ -6,7 +6,11 @@ import discord
 
 from modqueue import stream
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(module)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 log = logging.getLogger(__name__)
 
 logging.getLogger("discord").setLevel(logging.WARN)
