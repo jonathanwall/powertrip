@@ -7,15 +7,13 @@ import discord
 from modqueue import stream
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(asctime)s %(levelname)s %(module)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-log = logging.getLogger(__name__)
 
-logging.getLogger("discord").setLevel(logging.WARN)
-logging.getLogger("asyncpraw").setLevel(logging.WARN)
-logging.getLogger("asyncprawcore").setLevel(logging.WARN)
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 class Powertrip(discord.Bot):
@@ -23,15 +21,15 @@ class Powertrip(discord.Bot):
         discord.Bot.__init__(self)
         self.reddit = asyncpraw.Reddit()
 
-    def run(self, token=None):
-        if token is None:
-            token = os.environ["pt_token"]
-        self.add_cog(stream.ModQueueStream(self))
-        super().run(token)
-
     async def on_error(self, event, *args, **kwargs):
         log.info("on_error")
         return await super().on_error(event, *args, **kwargs)
+
+    async def on_connect(self):
+        log.info("on_connect")
+
+    async def on_disconnect(self):
+        log.info("on_disconnect")
 
     async def on_interaction(self, interaction):
         log.info("on_interaction")
@@ -42,16 +40,11 @@ class Powertrip(discord.Bot):
     async def on_resumed(self):
         log.info("on_resumed")
 
-    async def on_connect(self):
-        log.info("on_connect")
-
-    async def on_disconnect(self):
-        log.info("on_disconnect")
-
 
 def main():
     pt = Powertrip()
-    pt.run()
+    pt.add_cog(stream.ModQueueStream(pt))
+    pt.run(os.environ["pt_token"])
 
 
 if __name__ == "__main__":
