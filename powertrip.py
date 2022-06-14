@@ -29,6 +29,9 @@ class Powertrip(discord.Bot):
         log.info("on_error")
         return await super().on_error(event, *args, **kwargs)
 
+    async def on_interaction(self, interaction):
+        log.info("on_interaction")
+
     async def on_ready(self):
         log.info("on_ready")
 
