@@ -101,7 +101,7 @@ class FinalRemoveButton(discord.ui.Button):
             # if no duration is set, the ban will be permanent
             if self.view.ban != "Perm":
                 duration = int(self.view.ban)
-                if self.view.ban >= 1 and self.view.ban <= 999:
+                if duration >= 1 and duration <= 999:
                     ban_options["duration"] = duration
 
             ban_message = ""
