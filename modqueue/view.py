@@ -19,7 +19,7 @@ class View(discord.ui.View):
     async def log_interaction(self):
         pass
 
-    async def on_error(error, item, interaction):
+    async def on_error(self, error, item, interaction):
         log.info("on_error")
 
         return await super().on_error(error, item, interaction)
@@ -54,6 +54,7 @@ class RemoveButton(discord.ui.Button):
         )
         async for reason in self.view.item.subreddit.mod.removal_reasons:
             reasons.append(discord.SelectOption(label=reason.title, value=reason.id))
+        reasons.sort(key=reason.id)
         self.view.add_item(ReasonSelect(options=reasons))
 
         durations = (
