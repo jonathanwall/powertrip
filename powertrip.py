@@ -19,17 +19,17 @@ class Powertrip(discord.Bot):
         discord.Bot.__init__(self)
         self.reddit = asyncpraw.Reddit()
 
-    def run(self, token: str = None) -> None:
+    def run(self, token):
         if token is None:
             token = os.environ["pt_token"]
         self.add_cog(stream.ModQueueStream(self))
         super().run(token)
 
-    async def on_error(self, event: Exception, *args, **kwargs) -> None:
+    async def on_error(self, event: Exception, *args, **kwargs):
         return await super().on_error(event, *args, **kwargs)
 
 
-def main() -> None:
+def main():
     pt = Powertrip()
     pt.run()
 
