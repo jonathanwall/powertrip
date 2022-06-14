@@ -77,7 +77,6 @@ class ModQueueStream(commands.Cog):
     @stream.error
     async def error(self, error):
         log.info("error")
-        log.error(error)
 
         await self.bot.change_presence()
 

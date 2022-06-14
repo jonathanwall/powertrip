@@ -16,6 +16,9 @@ class View(discord.ui.View):
         self.add_item(ApproveButton())
         self.add_item(RemoveButton())
 
+    async def log_interaction(self):
+        pass
+
     async def on_error(error, item, interaction):
         log.info("on_error")
 
@@ -32,8 +35,6 @@ class ApproveButton(discord.ui.Button):
         super().__init__(label="Approve", style=discord.ButtonStyle.blurple, row=4)
 
     async def callback(self, interaction):
-        log.info("callback")
-
         await self.view.item.mod.approve()
 
         await interaction.message.delete(delay=0)
@@ -44,8 +45,6 @@ class RemoveButton(discord.ui.Button):
         super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
 
     async def callback(self, interaction):
-        log.info()
-
         self.view.remove_item(self)
         self.view.add_item(FinalRemoveButton())
 
@@ -77,8 +76,6 @@ class FinalRemoveButton(discord.ui.Button):
         super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
 
     async def callback(self, interaction):
-        log.info("callback")
-
         mod_note = f"{interaction.user.display_name} via PowerTrip"
 
         if self.view.reason is not None:
@@ -142,8 +139,6 @@ class ReasonSelect(discord.ui.Select):
         super().__init__(min_values=1, max_values=1, options=options, row=0)
 
     async def callback(self, interaction):
-        log.info("callback")
-
         try:
             reason_id = self.values[0]
             subreddit = self.view.item.subreddit
@@ -158,8 +153,6 @@ class BanSelect(discord.ui.Select):
         super().__init__(min_values=1, max_values=1, options=options, row=1)
 
     async def callback(self, interaction):
-        log.info("callback")
-
         duration = self.values[0]
         if duration == "None":
             self.view.ban = None
