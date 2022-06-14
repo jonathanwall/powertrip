@@ -7,13 +7,14 @@ import discord
 from modqueue import stream
 
 logging.basicConfig(
-    level=logging.ERROR,
+    level=logging.INFO,
     format="%(asctime)s %(levelname)s %(module)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+logging.getLogger("discord").setLevel(logging.ERROR)
+logging.getLogger("asyncpraw").setLevel(logging.ERROR)
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 
 class Powertrip(discord.Bot):
@@ -32,15 +33,15 @@ class Powertrip(discord.Bot):
         log.info("on_ready")
 
     async def on_interaction(self, interaction):
-        # log.info("on_interaction")
+        log.debug("on_interaction")
         pass
 
     async def on_disconnect(self):
-        # log.info("on_disconnect")
+        log.debug("on_disconnect")
         pass
 
     async def on_resumed(self):
-        # log.info("on_resumed")
+        log.debug("on_resumed")
         pass
 
 
