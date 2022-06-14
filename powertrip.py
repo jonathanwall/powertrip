@@ -26,7 +26,20 @@ class Powertrip(discord.Bot):
         super().run(token)
 
     async def on_error(self, event, *args, **kwargs):
+        log.info("on_error")
         return await super().on_error(event, *args, **kwargs)
+
+    async def on_ready(self):
+        log.info("on_ready")
+
+    async def on_resumed(self):
+        log.info("on_resumed")
+
+    async def on_connect(self):
+        log.info("on_connect")
+
+    async def on_disconnect(self):
+        log.info("on_disconnect")
 
 
 def main():
