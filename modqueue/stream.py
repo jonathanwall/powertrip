@@ -16,7 +16,7 @@ class ModQueueStream(commands.Cog):
         self.bot = bot
         self.stream.start()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=30)
     async def stream(self):
         reddit_queue = {}
 
@@ -24,7 +24,7 @@ class ModQueueStream(commands.Cog):
 
         async for item in subreddit.mod.modqueue():
             if item.author is None:
-                await item.mod.remove(mod_note="Redditor is deleted or shadowbanned.")
+                await item.mod.remove(mod_note="Redditor is deleted or shadowbanned")
             else:
                 reddit_queue[item.id] = item
 
@@ -32,12 +32,16 @@ class ModQueueStream(commands.Cog):
 
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
 
-        async for message in channel.history():
-            if message.author == self.bot.user:
-                try:
-                    discord_queue[message.embeds[0].footer.text] = message
-                except IndexError:
-                    pass
+        try:
+            async for message in channel.history():
+                if message.author == self.bot.user:
+                    try:
+                        discord_queue[message.embeds[0].footer.text] = message
+                    except IndexError:
+                        pass
+        except discord.errors.DiscordServerError:
+            log.error("Discord server error")
+            self.stream.restart()
 
         for item_id in discord_queue:
             if item_id in reddit_queue:
@@ -72,6 +76,8 @@ class ModQueueStream(commands.Cog):
 
         await self.bot.change_presence()
 
+        await asyncio.sleep(30)
+
         self.stream.restart()
 
     @stream.error
@@ -84,8 +90,8 @@ class ModQueueStream(commands.Cog):
 
         await channel.purge()
 
-        await channel.send(f"An error has occurred. Restarting in 5 minutes.")
+        await channel.send(f"An error has occurred. Restarting in 30 seconds.")
 
-        await asyncio.sleep(300)
+        await asyncio.sleep(30)
 
         self.stream.restart()
