@@ -1,25 +1,27 @@
 import logging
+from ctypes import Union
 from datetime import datetime
 
 import discord
-from asyncpraw.models.reddit import comment, submission
+from asyncpraw.models.reddit.comment import Comment
+from asyncpraw.models.reddit.submission import Submission
 
 log = logging.getLogger(__name__)
 
 
 class Embed(discord.Embed):
-    def __init__(self, item):
+    def __init__(self, item: Union[Comment, Submission]):
         super().__init__()
         self.color = 0xDA655F
         self.timestamp = datetime.fromtimestamp(item.created_utc)
         self.set_footer(text=item.id)
-        if isinstance(item, comment.Comment):
+        if isinstance(item, Comment):
             self.add_field(
                 name="Comment",
                 value=f"**[{item.body[:900]}]" + f"(https://www.reddit.com{item.permalink})**",
                 inline=False,
             )
-        if isinstance(item, submission.Submission):
+        if isinstance(item, Submission):
             self.add_field(
                 name="Submission",
                 value=f"**[{item.title}]" + f"(https://www.reddit.com{item.permalink})**",

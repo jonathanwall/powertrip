@@ -3,6 +3,7 @@ import logging
 import os
 
 import discord
+from discord import Bot
 from discord.ext import commands, tasks
 
 from .embed import Embed
@@ -12,12 +13,12 @@ log = logging.getLogger(__name__)
 
 
 class ModQueueStream(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.stream.start()
 
     @tasks.loop(seconds=30)
-    async def stream(self):
+    async def stream(self) -> None:
         reddit_queue = {}
 
         subreddit = await self.bot.reddit.subreddit("mod")
@@ -56,7 +57,7 @@ class ModQueueStream(commands.Cog):
             await channel.send(embed=embed, view=view)
 
     @stream.before_loop
-    async def before_stream(self):
+    async def before_stream(self) -> None:
         log.info("before_stream")
 
         await self.bot.wait_until_ready()
@@ -68,7 +69,7 @@ class ModQueueStream(commands.Cog):
         await self.bot.change_presence(activity=watching)
 
     @stream.after_loop
-    async def after_stream(self):
+    async def after_stream(self) -> None:
         log.info("after_stream")
 
         if self.stream.is_being_cancelled():
@@ -81,7 +82,7 @@ class ModQueueStream(commands.Cog):
         self.stream.restart()
 
     @stream.error
-    async def error(self, error):
+    async def error(self, error: Exception) -> None:
         log.info("error")
 
         await self.bot.change_presence()
