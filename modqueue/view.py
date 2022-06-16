@@ -138,7 +138,7 @@ class FinalRemoveButton(discord.ui.Button):
 
 
 class ReasonSelect(discord.ui.Select):
-    def __init__(self, options: list[discord.SelectOption]):
+    def __init__(self, options):
         super().__init__(min_values=1, max_values=1, options=options, row=0)
 
     async def callback(self, interaction: Interaction) -> None:
@@ -153,7 +153,7 @@ class ReasonSelect(discord.ui.Select):
 
 
 class BanSelect(discord.ui.Select):
-    def __init__(self, options: list[discord.SelectOption]):
+    def __init__(self, options):
         super().__init__(min_values=1, max_values=1, options=options, row=1)
 
     async def callback(self, interaction: Interaction) -> None:
