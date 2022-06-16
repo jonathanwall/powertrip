@@ -46,8 +46,9 @@ class RemoveButton(discord.ui.Button):
         super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
 
     async def callback(self, interaction):
-        self.view.remove_item(self)
+        self.view.clear_items()
         self.view.add_item(FinalRemoveButton())
+        self.view.add_item(CancelButton())
 
         reasons = []
         reasons.append(discord.SelectOption(label="No Reason", value=".", default=True))
@@ -160,3 +161,12 @@ class BanSelect(discord.ui.Select):
             self.view.ban = None
         else:
             self.view.ban = duration
+
+
+class CancelButton(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="Cancel", style=discord.ButtonStyle.gray, row=4)
+
+    async def callback(self, interaction):
+        view = View(item=self.view.item)
+        await interaction.message.edit(view=view)
