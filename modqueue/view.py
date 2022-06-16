@@ -1,8 +1,6 @@
 import logging
 import operator
 import os
-from ctypes import Union
-from typing import Optional
 
 import discord
 from asyncpraw.models.reddit.comment import Comment
@@ -14,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class View(discord.ui.View):
-    def __init__(self, item: Union[Comment, Submission], timeout: Optional[float] = None):
+    def __init__(self, item, timeout: float = None):
         super().__init__(timeout=timeout)
         self.item = item
         self.reason = None
