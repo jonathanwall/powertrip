@@ -4,6 +4,7 @@ import os
 
 import discord
 from asyncpraw.models.reddit import comment, submission
+from discord import ButtonStyle
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class View(discord.ui.View):
 
 class ApproveButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="Approve", style=discord.ButtonStyle.blurple, row=4)
+        super().__init__(label="Approve", style=ButtonStyle.blurple, row=4)
 
     async def callback(self, interaction):
         await self.view.item.mod.approve()
@@ -43,7 +44,7 @@ class ApproveButton(discord.ui.Button):
 
 class RemoveButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
+        super().__init__(label="Remove", style=ButtonStyle.red, row=4)
 
     async def callback(self, interaction):
         self.view.clear_items()
@@ -76,7 +77,7 @@ class RemoveButton(discord.ui.Button):
 
 class FinalRemoveButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="Remove", style=discord.ButtonStyle.red, row=4)
+        super().__init__(label="Remove", style=ButtonStyle.red, row=4)
 
     async def callback(self, interaction):
         mod_note = f"{interaction.user.display_name} via PowerTrip"
@@ -161,7 +162,7 @@ class BanSelect(discord.ui.Select):
 
 class CancelButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="Cancel", style=discord.ButtonStyle.gray, row=4)
+        super().__init__(label="Cancel", style=ButtonStyle.gray, row=4)
 
     async def callback(self, interaction):
         view = View(item=self.view.item)
