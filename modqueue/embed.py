@@ -49,7 +49,7 @@ class Embed(discord.Embed):
         self.add_field(
             name="Author (Karma)",
             value=f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-            + f"({item.author.total_karma})",
+            + f" ({item.author.total_karma})",
             inline=False,
         )
         if item.user_reports or item.mod_reports:
