@@ -33,16 +33,12 @@ class ModQueueStream(commands.Cog):
 
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
 
-        try:
-            async for message in channel.history():
-                if message.author == self.bot.user:
-                    try:
-                        discord_queue[message.embeds[0].footer.text] = message
-                    except IndexError:
-                        pass
-        except discord.errors.DiscordServerError:
-            log.error("Discord server error")
-            self.stream.restart()
+        async for message in channel.history():
+            if message.author == self.bot.user:
+                try:
+                    discord_queue[message.embeds[0].footer.text] = message
+                except IndexError:
+                    pass
 
         for item_id in discord_queue:
             if item_id in reddit_queue:
