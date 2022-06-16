@@ -16,21 +16,18 @@ class Embed(discord.Embed):
         if isinstance(item, comment.Comment):
             self.add_field(
                 name="Comment",
-                value=f"**[{item.body[:900]}]"
-                + f"(https://www.reddit.com{item.permalink})**",
+                value=f"**[{item.body[:900]}]" + f"(https://www.reddit.com{item.permalink})**",
                 inline=False,
             )
         if isinstance(item, submission.Submission):
             self.add_field(
                 name="Submission",
-                value=f"**[{item.title}]"
-                + f"(https://www.reddit.com{item.permalink})**",
+                value=f"**[{item.title}]" + f"(https://www.reddit.com{item.permalink})**",
                 inline=False,
             )
             if item.selftext:
                 selftext = (
-                    f"[{item.selftext[:900]}]"
-                    + f"(https://www.reddit.com{item.permalink})"
+                    f"[{item.selftext[:900]}]" + f"(https://www.reddit.com{item.permalink})"
                 )
                 self.add_field(name="Submission Text", value=selftext, inline=False)
 

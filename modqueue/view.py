@@ -82,9 +82,7 @@ class FinalRemoveButton(discord.ui.Button):
         mod_note = f"{interaction.user.display_name} via PowerTrip"
 
         if self.view.reason is not None:
-            await self.view.item.mod.remove(
-                mod_note=mod_note, reason_id=self.view.reason.id
-            )
+            await self.view.item.mod.remove(mod_note=mod_note, reason_id=self.view.reason.id)
             await self.view.item.mod.send_removal_message(
                 self.view.reason.message,
                 title=self.view.reason.title,
@@ -130,9 +128,7 @@ class FinalRemoveButton(discord.ui.Button):
 
             ban_options["ban_message"] = ban_message
 
-            await self.view.item.subreddit.banned.add(
-                self.view.item.author, **ban_options
-            )
+            await self.view.item.subreddit.banned.add(self.view.item.author, **ban_options)
 
         await interaction.message.delete(delay=0)
 
