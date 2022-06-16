@@ -1,16 +1,19 @@
 import logging
 import operator
 import os
+from ctypes import Union
 
 import discord
-from asyncpraw.models.reddit import comment, submission
-from discord import ButtonStyle
+from asyncpraw.models.reddit.comment import Comment
+from asyncpraw.models.reddit.submission import Submission
+from discord import ButtonStyle, Interaction
+from discord.ui import Item
 
 log = logging.getLogger(__name__)
 
 
 class View(discord.ui.View):
-    def __init__(self, item, timeout=None):
+    def __init__(self, item: Union[Comment, Submission], timeout: int = None):
         super().__init__(timeout=timeout)
         self.item = item
         self.reason = None
@@ -18,17 +21,16 @@ class View(discord.ui.View):
         self.add_item(ApproveButton())
         self.add_item(RemoveButton())
 
-    async def log_interaction(self):
-        pass
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        log.debug("interaction_check")
+        return await super().interaction_check(interaction)
 
-    async def on_error(self, error, item, interaction):
+    async def on_error(self, error: Exception, item: Item, interaction: Interaction) -> None:
         log.info("on_error")
-
         return await super().on_error(error, item, interaction)
 
     async def on_timeout(self):
         log.info("on_timeout")
-
         return await super().on_timeout()
 
 
@@ -36,7 +38,7 @@ class ApproveButton(discord.ui.Button):
     def __init__(self):
         super().__init__(label="Approve", style=ButtonStyle.blurple, row=4)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         await self.view.item.mod.approve()
 
         await interaction.message.delete(delay=0)
@@ -46,7 +48,7 @@ class RemoveButton(discord.ui.Button):
     def __init__(self):
         super().__init__(label="Remove", style=ButtonStyle.red, row=4)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         self.view.clear_items()
         self.view.add_item(FinalRemoveButton())
         self.view.add_item(CancelButton())
@@ -79,7 +81,7 @@ class FinalRemoveButton(discord.ui.Button):
     def __init__(self):
         super().__init__(label="Remove", style=ButtonStyle.red, row=4)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         mod_note = f"{interaction.user.display_name} via PowerTrip"
 
         if self.view.reason is not None:
@@ -105,14 +107,14 @@ class FinalRemoveButton(discord.ui.Button):
 
             ban_message = ""
 
-            if isinstance(self.view.item, comment.Comment):
+            if isinstance(self.view.item, Comment):
                 ban_message += (
                     "You have been banned for the following comment:"
                     + f"\n[{self.view.item.body}]"
                     + f"(https://www.reddit.com/{self.view.item.permalink})"
                 )
 
-            if isinstance(self.view.item, submission.Submission):
+            if isinstance(self.view.item, Submission):
                 ban_message += (
                     "You have been banned for the following submission:"
                     + f"\n[{self.view.item.title}]"
@@ -135,10 +137,10 @@ class FinalRemoveButton(discord.ui.Button):
 
 
 class ReasonSelect(discord.ui.Select):
-    def __init__(self, options):
+    def __init__(self, options: list[discord.SelectOption]):
         super().__init__(min_values=1, max_values=1, options=options, row=0)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         try:
             reason_id = self.values[0]
             subreddit = self.view.item.subreddit
@@ -149,10 +151,10 @@ class ReasonSelect(discord.ui.Select):
 
 
 class BanSelect(discord.ui.Select):
-    def __init__(self, options):
+    def __init__(self, options: list[discord.SelectOption]):
         super().__init__(min_values=1, max_values=1, options=options, row=1)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         duration = self.values[0]
         if duration == "None":
             self.view.ban = None
@@ -164,6 +166,6 @@ class CancelButton(discord.ui.Button):
     def __init__(self):
         super().__init__(label="Cancel", style=ButtonStyle.gray, row=4)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: Interaction) -> None:
         view = View(item=self.view.item)
         await interaction.message.edit(view=view)
