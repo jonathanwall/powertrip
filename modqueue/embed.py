@@ -1,5 +1,4 @@
 import logging
-from ctypes import Union
 from datetime import datetime
 
 import discord
@@ -10,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class Embed(discord.Embed):
-    def __init__(self, item: Union[Comment, Submission]):
+    def __init__(self, item):
         super().__init__()
         self.color = 0xDA655F
         self.timestamp = datetime.fromtimestamp(item.created_utc)
