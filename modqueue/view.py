@@ -28,7 +28,7 @@ class View(discord.ui.View):
         log.error("on_error")
         return await super().on_error(error, item, interaction)
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         log.debug("on_timeout")
         return await super().on_timeout()
 
@@ -74,7 +74,7 @@ class RemoveButton(discord.ui.Button):
         bans.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
         self.view.add_item(BanSelect(options=bans))
 
-        await interaction.message.edit(view=self.view)
+        await interaction.edit_original_message(view=self.view)
 
 
 class FinalRemoveButton(discord.ui.Button):
@@ -172,4 +172,4 @@ class CancelButton(discord.ui.Button):
     async def callback(self, interaction: Interaction) -> None:
         log.debug("cancel_callback")
         view = View(item=self.view.item)
-        await interaction.message.edit(view=view)
+        await interaction.edit_original_message(view=self.view)
