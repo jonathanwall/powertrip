@@ -74,7 +74,7 @@ class RemoveButton(discord.ui.Button):
         bans.append(discord.SelectOption(label="Permanent Ban", value="Perm"))
         self.view.add_item(BanSelect(options=bans))
 
-        await interaction.edit_original_message(view=self.view)
+        await interaction.message.edit(view=self.view)
 
 
 class FinalRemoveButton(discord.ui.Button):
@@ -172,4 +172,4 @@ class CancelButton(discord.ui.Button):
     async def callback(self, interaction: Interaction) -> None:
         log.debug("cancel_callback")
         view = View(item=self.view.item)
-        await interaction.edit_original_message(view=self.view)
+        await interaction.message.edit(view=view)
