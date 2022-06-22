@@ -58,7 +58,7 @@ class RemoveButton(discord.ui.Button):
         async for reason in self.view.item.subreddit.mod.removal_reasons:
             reasons.append(discord.SelectOption(label=reason.title, value=reason.id))
 
-        reasons.sort(key=operator.attrgetter("label"), reverse=True)
+        reasons.sort(key=operator.attrgetter("label"))
 
         self.view.add_item(ReasonSelect(options=reasons))
 
