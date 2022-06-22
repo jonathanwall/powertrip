@@ -17,28 +17,38 @@ class ModQueueStream(commands.Cog):
         self.bot = bot
         self.stream.start()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=60)
     async def stream(self) -> None:
         reddit_queue = {}
 
         subreddit = await self.bot.reddit.subreddit("mod")
 
-        async for item in subreddit.mod.modqueue():
-            if item.author is None:
-                await item.mod.remove(mod_note="Redditor is deleted or shadowbanned")
-            else:
-                reddit_queue[item.id] = item
+        try:
+            async for item in subreddit.mod.modqueue():
+                if item.author is None:
+                    await item.mod.remove(mod_note="Redditor is deleted or shadowbanned")
+                else:
+                    reddit_queue[item.id] = item
+        except Exception as e:
+            log.error("Error retreiving reddit modqueue")
+            log.error(e)
+            return
 
         discord_queue = {}
 
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
 
-        async for message in channel.history():
-            if message.author == self.bot.user:
-                try:
-                    discord_queue[message.embeds[0].footer.text] = message
-                except IndexError:
-                    pass
+        try:
+            async for message in channel.history():
+                if message.author == self.bot.user:
+                    try:
+                        discord_queue[message.embeds[0].footer.text] = message
+                    except IndexError:
+                        pass
+        except Exception as e:
+            log.error("Error retreving discord channel")
+            log.error(e)
+            return
 
         for item_id in discord_queue:
             if item_id in reddit_queue:
@@ -80,15 +90,3 @@ class ModQueueStream(commands.Cog):
     @stream.error
     async def error(self, error: Exception) -> None:
         log.info("error")
-
-        await self.bot.change_presence()
-
-        channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
-
-        await channel.purge()
-
-        await channel.send(f"An error has occurred. Restarting in 30 seconds.")
-
-        await asyncio.sleep(30)
-
-        self.stream.restart()
