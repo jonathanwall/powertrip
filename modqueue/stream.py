@@ -20,20 +20,20 @@ class ModQueueStream(commands.Cog):
     @tasks.loop(seconds=60)
     async def stream(self) -> None:
         reddit_queue = {}
-        subreddit = await self.bot.reddit.subreddit("mod")
         try:
+            subreddit = await self.bot.reddit.subreddit("mod")
             async for item in subreddit.mod.modqueue():
                 if item.author is None:
                     await item.mod.remove(mod_note="Redditor is deleted or shadowbanned")
                 else:
                     reddit_queue[item.id] = item
         except Exception as e:
-            log.error(f"reddit error: {e.__class__}: {e}")
+            log.error(f"reddit error: {e.__class__.__name__}: {e}")
             return
 
         discord_queue = {}
-        channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
         try:
+            channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
             async for message in channel.history():
                 if message.author == self.bot.user:
                     try:
@@ -41,7 +41,7 @@ class ModQueueStream(commands.Cog):
                     except IndexError:
                         pass
         except Exception as e:
-            log.error(f"discord error: {e.__class__}: {e}")
+            log.error(f"discord error: {e.__class__.__name__}: {e}")
             return
 
         for item_id in discord_queue:
@@ -52,9 +52,7 @@ class ModQueueStream(commands.Cog):
 
         for item in reversed(list(reddit_queue.values())):
             await item.author.load()
-            embed = Embed(item)
-            view = View(item)
-            await channel.send(embed=embed, view=view)
+            await channel.send(embed=Embed(item), view=View(item))
 
     # Called before the loop starts running.
     @stream.before_loop
@@ -62,23 +60,35 @@ class ModQueueStream(commands.Cog):
         log.info("before_stream")
         await self.bot.wait_until_ready()
 
-        channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
-        await channel.purge()
+        try:
+            channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
+            await channel.purge()
+        except Exception as e:
+            log.error(f"error purging queue channel:\n{e.__class__}: {e}")
+            self.sleep_and_restart()
+        else:
+            activity = discord.Activity(type=discord.ActivityType.watching, name="reddit.")
+            await self.bot.change_presence(activity=activity)
 
-        watching = discord.Activity(type=discord.ActivityType.watching, name="reddit.")
-        await self.bot.change_presence(activity=watching)
-
-    # Called after the loop finished running.
+    # Called after the loop finishes running.
     @stream.after_loop
     async def after_stream(self) -> None:
         log.info("after_stream")
         if self.stream.is_being_cancelled():
             log.info("is_being_cancelled")
+            return
+
         await self.bot.change_presence()
-        await asyncio.sleep(30)
-        self.stream.restart()
+        await self.sleep_and_restart()
 
     # Called if the task encounters an unhandled exception.
     @stream.error
     async def error(self, error: Exception) -> None:
-        log.error(f"stream.error: {error.__class__}: {error}")
+        log.error(f"stream.error: {error.__class__.__name__}: {error}")
+
+    async def sleep_and_restart(self, sleep_seconds=None):
+        sleep_seconds = 300 if sleep_seconds is None else sleep_seconds
+        log.info(f"sleeping {sleep_seconds}")
+        await asyncio.sleep(sleep_seconds)
+        log.info("restarting stream")
+        await self.stream.restart()
