@@ -21,7 +21,11 @@ class View(discord.ui.View):
         self.add_item(RemoveButton())
 
     async def log_interaction(self, interaction: Interaction) -> None:
-        channel = interaction.guild.get_channel(int(os.environ["pt_log_channel"]))
+        try:
+            channel = interaction.guild.get_channel(int(os.environ["pt_log_channel"]))
+        except AttributeError:
+            return
+
         embed = interaction.message.embeds[0]
         if self.reason == "Approved":
             embed.color = discord.Color.green()
@@ -45,7 +49,7 @@ class View(discord.ui.View):
     # Called when an item’s callback or interaction_check() fails with an error.
     async def on_error(self, error: Exception, item: Item, interaction: Interaction) -> None:
         log.debug("on_error")
-        await interaction.message.delete()
+        await interaction.message.delete(delay=0)
         return await super().on_error(error, item, interaction)
 
     # Called when a view’s timeout elapses without being explicitly stopped.
