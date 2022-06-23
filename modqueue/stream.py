@@ -57,15 +57,24 @@ class ModQueueStream(commands.Cog):
     # Called before the loop starts running.
     @stream.before_loop
     async def before_stream(self) -> None:
-        log.info("before_stream")
+        log.debug("before_stream")
         await self.bot.wait_until_ready()
-
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
+        except KeyError:
+            log.error("Enviroment variable pt_queue_channel is not set.")
+            os._exit(0)
+        try:
             await channel.purge()
-        except Exception as e:
-            log.error(f"error purging queue channel:\n{e.__class__}: {e}")
-            self.sleep_and_restart()
+        except AttributeError:
+            log.error("Queue channel is not found.")
+            await self.sleep_and_restart()
+        except discord.Forbidden:
+            log.error("Access to queue channel is forbidden.")
+            await self.sleep_and_restart()
+        except discord.HTTPException:
+            log.error("discord.HTTPException while starting stream.")
+            await self.sleep_and_restart()
         else:
             activity = discord.Activity(type=discord.ActivityType.watching, name="reddit.")
             await self.bot.change_presence(activity=activity)
@@ -73,22 +82,22 @@ class ModQueueStream(commands.Cog):
     # Called after the loop finishes running.
     @stream.after_loop
     async def after_stream(self) -> None:
-        log.info("after_stream")
+        log.debug("after_stream")
         if self.stream.is_being_cancelled():
-            log.info("is_being_cancelled")
+            log.debug("is_being_cancelled")
             return
-
-        await self.bot.change_presence()
         await self.sleep_and_restart()
 
     # Called if the task encounters an unhandled exception.
     @stream.error
     async def error(self, error: Exception) -> None:
         log.error(f"stream.error: {error.__class__.__name__}: {error}")
+        self.sleep_and_restart()
 
     async def sleep_and_restart(self, sleep_seconds=None):
-        sleep_seconds = 300 if sleep_seconds is None else sleep_seconds
-        log.info(f"sleeping {sleep_seconds}")
+        sleep_seconds = 15 if sleep_seconds is None else sleep_seconds
+        await self.bot.change_presence(status=discord.Status.idle)
+        log.debug(f"sleeping {sleep_seconds} seconds")
         await asyncio.sleep(sleep_seconds)
-        log.info("restarting stream")
-        await self.stream.restart()
+        log.debug("restarting stream")
+        self.stream.restart()
