@@ -20,6 +20,22 @@ class View(discord.ui.View):
         self.add_item(ApproveButton())
         self.add_item(RemoveButton())
 
+    async def log_interaction(self, interaction: Interaction) -> None:
+        channel = interaction.guild.get_channel(int(os.environ["pt_log_channel"]))
+        embed = interaction.message.embeds[0]
+        if self.reason == "Approved":
+            embed.color = discord.Color.green()
+        else:
+            embed.add_field(
+                name="Reason",
+                value=f"{self.reason.title if self.reason is not None else 'No Reason'}",
+                inline=False,
+            )
+        if self.ban is not None:
+            embed.add_field(name="Ban", value=f"{self.ban}", inline=False)
+        embed.add_field(name="Mod", value=f"{interaction.user.display_name}", inline=False)
+        await channel.send(embed=interaction.message.embeds[0])
+
     # Called when an interaction happens within the view that checks whether the view
     # should process item callbacks for the interaction. Default returns True.
     async def interaction_check(self, interaction: Interaction) -> bool:
@@ -45,7 +61,9 @@ class ApproveButton(discord.ui.Button):
     async def callback(self, interaction: Interaction) -> None:
         log.debug("approve_callback")
         await self.view.item.mod.approve()
+        self.view.reason = "Approved"
         await interaction.message.delete(delay=0)
+        await self.view.log_interaction(interaction)
 
 
 class RemoveButton(discord.ui.Button):
@@ -140,6 +158,7 @@ class FinalRemoveButton(discord.ui.Button):
             await self.view.item.subreddit.banned.add(self.view.item.author, **ban_options)
 
         await interaction.message.delete(delay=0)
+        await self.view.log_interaction(interaction)
 
 
 class ReasonSelect(discord.ui.Select):
