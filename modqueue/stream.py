@@ -20,9 +20,7 @@ class ModQueueStream(commands.Cog):
     @tasks.loop(seconds=60)
     async def stream(self) -> None:
         reddit_queue = {}
-
         subreddit = await self.bot.reddit.subreddit("mod")
-
         try:
             async for item in subreddit.mod.modqueue():
                 if item.author is None:
@@ -30,13 +28,11 @@ class ModQueueStream(commands.Cog):
                 else:
                     reddit_queue[item.id] = item
         except Exception as e:
-            log.error(f"Error retreiving reddit modqueue: {e}")
+            log.error(f"Reddit error: {e}")
             return
 
         discord_queue = {}
-
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
-
         try:
             async for message in channel.history():
                 if message.author == self.bot.user:
@@ -45,7 +41,7 @@ class ModQueueStream(commands.Cog):
                     except IndexError:
                         pass
         except Exception as e:
-            log.error(f"Error retreving discord channel: {e}")
+            log.error(f"Discord error: {e}")
             return
 
         for item_id in discord_queue:
@@ -60,10 +56,10 @@ class ModQueueStream(commands.Cog):
             view = View(item)
             await channel.send(embed=embed, view=view)
 
+    # Called before the loop starts running.
     @stream.before_loop
     async def before_stream(self) -> None:
         log.info("before_stream")
-
         await self.bot.wait_until_ready()
 
         channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -72,19 +68,17 @@ class ModQueueStream(commands.Cog):
         watching = discord.Activity(type=discord.ActivityType.watching, name="reddit.")
         await self.bot.change_presence(activity=watching)
 
+    # Called after the loop finished running.
     @stream.after_loop
     async def after_stream(self) -> None:
         log.info("after_stream")
-
         if self.stream.is_being_cancelled():
             log.info("is_being_cancelled")
-
         await self.bot.change_presence()
-
         await asyncio.sleep(30)
-
         self.stream.restart()
 
+    # Called if the task encounters an unhandled exception.
     @stream.error
     async def error(self, error: Exception) -> None:
         log.info("error")

@@ -20,14 +20,18 @@ class View(discord.ui.View):
         self.add_item(ApproveButton())
         self.add_item(RemoveButton())
 
+    # Called when an interaction happens within the view that checks whether the view
+    # should process item callbacks for the interaction. Default returns True.
     async def interaction_check(self, interaction: Interaction) -> bool:
         log.debug("interaction_check")
         return await super().interaction_check(interaction)
 
+    # Called when an item’s callback or interaction_check() fails with an error.
     async def on_error(self, error: Exception, item: Item, interaction: Interaction) -> None:
         log.error("on_error")
         return await super().on_error(error, item, interaction)
 
+    # Called when a view’s timeout elapses without being explicitly stopped.
     async def on_timeout(self) -> None:
         log.debug("on_timeout")
         return await super().on_timeout()
