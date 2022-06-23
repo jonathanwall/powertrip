@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 class Embed(discord.Embed):
     def __init__(self, item):
         super().__init__()
-        self.color = 0xDA655F
+        self.color = discord.Color.red()
         self.timestamp = datetime.fromtimestamp(item.created_utc)
         self.set_footer(text=item.id)
         if isinstance(item, Comment):
@@ -51,7 +51,7 @@ class Embed(discord.Embed):
             inline=False,
         )
         if item.user_reports or item.mod_reports:
-            self.color = 0xDFA936
+            self.color = discord.Color.yellow()
             if item.user_reports:
                 report = item.user_reports[0][0]
                 self.add_field(name="User Report", value=report, inline=False)
