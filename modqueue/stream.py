@@ -30,8 +30,7 @@ class ModQueueStream(commands.Cog):
                 else:
                     reddit_queue[item.id] = item
         except Exception as e:
-            log.error("Error retreiving reddit modqueue")
-            log.error(e)
+            log.error(f"Error retreiving reddit modqueue: {e}")
             return
 
         discord_queue = {}
@@ -46,8 +45,7 @@ class ModQueueStream(commands.Cog):
                     except IndexError:
                         pass
         except Exception as e:
-            log.error("Error retreving discord channel")
-            log.error(e)
+            log.error(f"Error retreving discord channel: {e}")
             return
 
         for item_id in discord_queue:
