@@ -134,14 +134,14 @@ class FinalRemoveButton(discord.ui.Button):
             if isinstance(self.view.item, Comment):
                 ban_message += (
                     "You have been banned for the following comment:"
-                    + f"\n[{self.view.item.body}]"
+                    + f"[{self.view.item.body}]"
                     + f"(https://www.reddit.com/{self.view.item.permalink})"
                 )
 
             if isinstance(self.view.item, Submission):
                 ban_message += (
                     "You have been banned for the following submission:"
-                    + f"\n[{self.view.item.title}]"
+                    + f"[{self.view.item.title}]"
                     + f"(https://www.reddit.com/{self.view.item.permalink})"
                 )
 
@@ -149,7 +149,7 @@ class FinalRemoveButton(discord.ui.Button):
                 ban_options["ban_reason"] = self.view.reason.title[:100]
 
                 ban_message += (
-                    f"\nThe moderator provided the following reason:"
+                    f"\n\nThe moderator provided the following reason:"
                     + f" **{self.view.reason.title}**"
                 )
 
