@@ -28,7 +28,7 @@ class ModQueueStream(commands.Cog):
                 else:
                     reddit_queue[item.id] = item
         except Exception as e:
-            log.error(f"Reddit error: {e.__class__}: {e}")
+            log.error(f"reddit error: {e.__class__}: {e}")
             return
 
         discord_queue = {}
@@ -41,7 +41,7 @@ class ModQueueStream(commands.Cog):
                     except IndexError:
                         pass
         except Exception as e:
-            log.error(f"Discord error: {e.__class__}: {e}")
+            log.error(f"discord error: {e.__class__}: {e}")
             return
 
         for item_id in discord_queue:
@@ -81,4 +81,4 @@ class ModQueueStream(commands.Cog):
     # Called if the task encounters an unhandled exception.
     @stream.error
     async def error(self, error: Exception) -> None:
-        log.info("error")
+        log.error(f"stream.error: {error.__class__}: {error}")
