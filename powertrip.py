@@ -23,14 +23,14 @@ class Powertrip(discord.Bot):
         self.reddit = asyncpraw.Reddit()
 
     async def on_error(self, event, *args, **kwargs):
-        log.info("on_error")
+        log.debug("on_error")
         return await super().on_error(event, *args, **kwargs)
 
     async def on_connect(self):
-        log.info("on_connect")
+        log.debug("on_connect")
 
     async def on_ready(self):
-        log.info("on_ready")
+        log.debug("on_ready")
 
     async def on_interaction(self, interaction):
         log.debug("on_interaction")
