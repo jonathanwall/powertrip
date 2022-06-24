@@ -92,10 +92,11 @@ class ModQueueStream(commands.Cog):
     @stream.error
     async def error(self, error: Exception) -> None:
         log.error(f"stream.error: {error.__class__.__name__}: {error}")
-        self.sleep_and_restart()
+        await self.sleep_and_restart()
 
     async def sleep_and_restart(self, sleep_seconds=None):
-        sleep_seconds = 15 if sleep_seconds is None else sleep_seconds
+        log.debug("sleep_and_restart")
+        sleep_seconds = 300 if sleep_seconds is None else sleep_seconds
         await self.bot.change_presence(status=discord.Status.idle)
         log.debug(f"sleeping {sleep_seconds} seconds")
         await asyncio.sleep(sleep_seconds)
