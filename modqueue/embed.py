@@ -44,10 +44,12 @@ class Embed(discord.Embed):
                     self.set_image(url=image_url)
                 except KeyError:
                     pass
+
         self.add_field(
-            name="Author (Karma)",
-            value=f"**[{item.author}](https://www.reddit.com/u/{item.author})**"
-            + f" ({item.author.total_karma})",
+            name="Author",
+            value=f"[{item.author}](https://www.reddit.com/u/{item.author})"
+            + f" \n **Karma** {item.author.total_karma}"
+            + f" \n **Created** {datetime.fromtimestamp(item.author.created_utc).strftime('%m/%d/%Y')}",
             inline=False,
         )
         if item.user_reports or item.mod_reports:
