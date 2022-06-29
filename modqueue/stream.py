@@ -28,7 +28,7 @@ class ModQueueStream(commands.Cog):
                 else:
                     reddit_queue[item.id] = item
         except Exception as e:
-            log.error(f"reddit error: {e.__class__.__name__}: {e}")
+            log.error(f"reddit error: {e.__module__}.{e.__class__.__name__}: {e}")
             return
 
         discord_queue = {}
@@ -40,8 +40,13 @@ class ModQueueStream(commands.Cog):
                         discord_queue[message.embeds[0].footer.text] = message
                     except IndexError:
                         pass
+        except discord.Forbidden:
+            log.error(
+                "Access to queue channel history is forbidden. Check 'Read Channel History' permissions."
+            )
+            return
         except Exception as e:
-            log.error(f"discord error: {e.__class__.__name__}: {e}")
+            log.error(f"discord error: {e.__module__}.{e. __class__.__name__}: {e}")
             return
 
         for item_id in discord_queue:
@@ -62,16 +67,20 @@ class ModQueueStream(commands.Cog):
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
         except KeyError:
-            log.error("Enviroment variable pt_queue_channel is not set.")
+            log.critical("Enviroment variable pt_queue_channel is not set.")
             os._exit(0)
         try:
             await channel.purge()
         except AttributeError:
-            log.error("Queue channel is not found.")
-            await self.sleep_and_restart()
+            log.error(
+                "Queue channel is not found. Ensure the channel is created and the ID matches with pt_queue_channel."
+            )
+            os._exit(0)
         except discord.Forbidden:
-            log.error("Access to queue channel is forbidden.")
-            await self.sleep_and_restart()
+            log.error(
+                "Access to queue channel purge is forbidden. Check 'Manage Messages' permissions."
+            )
+            os._exit(0)
         except discord.HTTPException:
             log.error("discord.HTTPException while starting stream.")
             await self.sleep_and_restart()
