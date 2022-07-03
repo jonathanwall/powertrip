@@ -49,8 +49,8 @@ class View(discord.ui.View):
     # Called when an item’s callback or interaction_check() fails with an error.
     async def on_error(self, error: Exception, item: Item, interaction: Interaction) -> None:
         log.debug("on_error")
+        log.error(f"{error.__module__}.{error.__class__.__name__}: {error}")
         await interaction.message.delete(delay=0)
-        return await super().on_error(error, item, interaction)
 
     # Called when a view’s timeout elapses without being explicitly stopped.
     async def on_timeout(self) -> None:
