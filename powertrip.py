@@ -46,6 +46,12 @@ class Powertrip(discord.Bot):
 
 
 def main():
+    try:
+        import uvloop
+    except ImportError:
+        pass
+    else:
+        uvloop.install()
     pt = Powertrip()
     pt.add_cog(stream.ModQueueStream(pt))
     pt.run(os.environ["pt_token"])
