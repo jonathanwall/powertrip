@@ -19,18 +19,6 @@ class ModQueueStream(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def stream(self) -> None:
-        reddit_queue = {}
-        try:
-            subreddit = await self.bot.reddit.subreddit("mod")
-            async for item in subreddit.mod.modqueue():
-                if item.author is None:
-                    await item.mod.remove(mod_note="Redditor is deleted or shadowbanned")
-                else:
-                    reddit_queue[item.id] = item
-        except Exception as e:
-            log.error(f"reddit error: {e.__module__}.{e.__class__.__name__}: {e}")
-            return
-
         discord_queue = {}
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -42,11 +30,27 @@ class ModQueueStream(commands.Cog):
                         pass
         except discord.Forbidden:
             log.error(
-                "Access to queue channel history is forbidden. Check 'Read Channel History' permissions."
+                "Powertrip does not have permissions to get channel message history. Check 'Read Channel History' permissions."
             )
+            return
+        # Exception that’s raised for when a 500 range status code occurs.
+        except discord.DiscordServerError as e:
+            log.warning(f"discord server error: {e.response}")
             return
         except Exception as e:
             log.error(f"discord error: {e.__module__}.{e. __class__.__name__}: {e}")
+            return
+
+        reddit_queue = {}
+        try:
+            subreddit = await self.bot.reddit.subreddit("mod")
+            async for item in subreddit.mod.modqueue():
+                if item.author is None or item.author.is_suspended:
+                    await item.mod.remove()
+                else:
+                    reddit_queue[item.id] = item
+        except Exception as e:
+            log.error(f"reddit error: {e.__module__}.{e.__class__.__name__}: {e}")
             return
 
         for item_id in discord_queue:
