@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 
+import asyncprawcore
 import discord
 from discord import Bot
 from discord.ext import commands, tasks
@@ -28,45 +29,38 @@ class ModQueueStream(commands.Cog):
                         discord_queue[message.embeds[0].footer.text] = message
                     except IndexError:
                         pass
-        except discord.Forbidden:
-            log.error(
-                "Powertrip does not have permissions to get channel message history. Check 'Read Channel History' permissions."
-            )
-            return
-        # Exception that’s raised for when a 500 range status code occurs.
-        except discord.DiscordServerError as e:
-            log.warning(f"discord server error: {e.response}")
+        except discord.DiscordServerError:
             return
         except Exception as e:
-            log.error(f"discord error: {e.__module__}.{e. __class__.__name__}: {e}")
+            log.error(f"discord error: {e. __class__.__name__}: {e}")
             return
 
         reddit_queue = {}
         try:
             subreddit = await self.bot.reddit.subreddit("mod")
             async for item in subreddit.mod.modqueue():
-                if item.author is None or item.author.is_suspended:
+                if item.author is None:
                     await item.mod.remove()
                 else:
                     reddit_queue[item.id] = item
+        except asyncprawcore.exceptions.ServerError:
+            return
         except Exception as e:
-            log.error(f"reddit error: {e.__module__}.{e.__class__.__name__}: {e}")
+            log.error(f"reddit error: {e.__class__.__name__}: {e}")
             return
 
-        for item_id in discord_queue:
-            if item_id in reddit_queue:
-                del reddit_queue[item_id]
+        for item in discord_queue:
+            if item in reddit_queue:
+                del reddit_queue[item]
             else:
-                await discord_queue[item_id].delete(delay=0)
+                await discord_queue[item].delete(delay=0)
 
         for item in reversed(list(reddit_queue.values())):
             await item.author.load()
             await channel.send(embed=Embed(item), view=View(item))
 
-    # Called before the loop starts running.
     @stream.before_loop
     async def before_stream(self) -> None:
-        log.debug("before_stream")
         await self.bot.wait_until_ready()
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -75,16 +69,6 @@ class ModQueueStream(commands.Cog):
             os._exit(0)
         try:
             await channel.purge()
-        except AttributeError:
-            log.error(
-                "Queue channel is not found. Ensure the channel is created and the ID matches with pt_queue_channel."
-            )
-            os._exit(0)
-        except discord.Forbidden:
-            log.error(
-                "Access to queue channel purge is forbidden. Check 'Manage Messages' permissions."
-            )
-            os._exit(0)
         except discord.HTTPException:
             log.error("discord.HTTPException while starting stream.")
             await self.sleep_and_restart()
@@ -92,26 +76,22 @@ class ModQueueStream(commands.Cog):
             activity = discord.Activity(type=discord.ActivityType.watching, name="reddit.")
             await self.bot.change_presence(activity=activity)
 
-    # Called after the loop finishes running.
     @stream.after_loop
     async def after_stream(self) -> None:
-        log.debug("after_stream")
         if self.stream.is_being_cancelled():
-            log.debug("is_being_cancelled")
             return
         await self.sleep_and_restart()
 
     # Called if the task encounters an unhandled exception.
     @stream.error
     async def error(self, error: Exception) -> None:
-        log.error(f"stream.error: {error.__class__.__name__}: {error}")
+        log.error(
+            f"An unhandled error has occured in the modqueue stream: {error.__class__.__name__}: {error}"
+        )
         await self.sleep_and_restart()
 
-    async def sleep_and_restart(self, sleep_seconds=None):
-        log.debug("sleep_and_restart")
+    async def sleep_and_restart(self, sleep_seconds: int = None) -> None:
         sleep_seconds = 300 if sleep_seconds is None else sleep_seconds
         await self.bot.change_presence(status=discord.Status.idle)
-        log.debug(f"sleeping {sleep_seconds} seconds")
         await asyncio.sleep(sleep_seconds)
-        log.debug("restarting stream")
         self.stream.restart()
