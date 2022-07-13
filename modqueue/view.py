@@ -40,22 +40,10 @@ class View(discord.ui.View):
         embed.add_field(name="Mod", value=f"{interaction.user.display_name}", inline=False)
         await channel.send(embed=interaction.message.embeds[0])
 
-    # Called when an interaction happens within the view that checks whether the view
-    # should process item callbacks for the interaction. Default returns True.
-    async def interaction_check(self, interaction: Interaction) -> bool:
-        log.debug("interaction_check")
-        return await super().interaction_check(interaction)
-
     # Called when an item’s callback or interaction_check() fails with an error.
     async def on_error(self, error: Exception, item: Item, interaction: Interaction) -> None:
-        log.debug("on_error")
         log.error(f"{error.__module__}.{error.__class__.__name__}: {error}")
         await interaction.message.delete(delay=0)
-
-    # Called when a view’s timeout elapses without being explicitly stopped.
-    async def on_timeout(self) -> None:
-        log.debug("on_timeout")
-        return await super().on_timeout()
 
 
 class ApproveButton(discord.ui.Button):
@@ -63,7 +51,6 @@ class ApproveButton(discord.ui.Button):
         super().__init__(label="Approve", style=ButtonStyle.blurple, row=4)
 
     async def callback(self, interaction: Interaction) -> None:
-        log.debug("approve_callback")
         await self.view.item.mod.approve()
         self.view.reason = "Approved"
         await interaction.message.delete(delay=0)
@@ -75,7 +62,6 @@ class RemoveButton(discord.ui.Button):
         super().__init__(label="Remove", style=ButtonStyle.red, row=4)
 
     async def callback(self, interaction: Interaction) -> None:
-        log.debug("remove_callback")
         self.view.clear_items()
         self.view.add_item(FinalRemoveButton())
         self.view.add_item(CancelButton())
