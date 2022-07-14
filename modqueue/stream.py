@@ -84,10 +84,8 @@ class ModQueueStream(commands.Cog):
 
     # Called if the task encounters an unhandled exception.
     @stream.error
-    async def error(self, error: Exception) -> None:
-        log.error(
-            f"An unhandled error has occured in the modqueue stream: {error.__class__.__name__}: {error}"
-        )
+    async def error(self, e: Exception) -> None:
+        log.error(f"stream error: {e.__class__.__name__}: {e}")
         await self.sleep_and_restart()
 
     async def sleep_and_restart(self, sleep_seconds: int = None) -> None:
