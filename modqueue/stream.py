@@ -2,9 +2,8 @@ import asyncio
 import logging
 import os
 
-import asyncprawcore
 import discord
-from discord import Bot
+import asyncprawcore
 from discord.ext import commands, tasks
 
 from .embed import Embed
@@ -14,12 +13,12 @@ log = logging.getLogger(__name__)
 
 
 class ModQueueStream(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: discord.Bot):
         self.bot = bot
         self.stream.start()
 
     @tasks.loop(seconds=60)
-    async def stream(self) -> None:
+    async def stream(self):
         discord_queue = {}
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -29,10 +28,11 @@ class ModQueueStream(commands.Cog):
                         discord_queue[message.embeds[0].footer.text] = message
                     except IndexError:
                         pass
-        except discord.DiscordServerError:
+        except discord.DiscordServerError as e:
+            log.warning(f"discord server error: {e.status}")
             return
         except Exception as e:
-            log.error(f"discord error: {e. __class__.__name__}: {e}")
+            log.warning(f"discord error: {e. __class__.__name__}: {e}")
             return
 
         reddit_queue = {}
@@ -43,10 +43,11 @@ class ModQueueStream(commands.Cog):
                     await item.mod.remove()
                 else:
                     reddit_queue[item.id] = item
-        except asyncprawcore.exceptions.ServerError:
+        except asyncprawcore.ServerError as e:
+            log.warning(f"reddit server error: {e.response.status}")
             return
         except Exception as e:
-            log.error(f"reddit error: {e.__class__.__name__}: {e}")
+            log.warning(f"reddit error: {e.__class__.__name__}: {e}")
             return
 
         for item in discord_queue:
@@ -60,7 +61,7 @@ class ModQueueStream(commands.Cog):
             await channel.send(embed=Embed(item), view=View(item))
 
     @stream.before_loop
-    async def before_stream(self) -> None:
+    async def before_stream(self):
         await self.bot.wait_until_ready()
         try:
             channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
@@ -77,18 +78,18 @@ class ModQueueStream(commands.Cog):
             await self.bot.change_presence(activity=activity)
 
     @stream.after_loop
-    async def after_stream(self) -> None:
+    async def after_stream(self):
         if self.stream.is_being_cancelled():
             return
         await self.sleep_and_restart()
 
     # Called if the task encounters an unhandled exception.
     @stream.error
-    async def error(self, e: Exception) -> None:
+    async def error(self, e: Exception):
         log.error(f"stream error: {e.__class__.__name__}: {e}")
         await self.sleep_and_restart()
 
-    async def sleep_and_restart(self, sleep_seconds: int = None) -> None:
+    async def sleep_and_restart(self, sleep_seconds: int = None):
         sleep_seconds = 300 if sleep_seconds is None else sleep_seconds
         await self.bot.change_presence(status=discord.Status.idle)
         await asyncio.sleep(sleep_seconds)
