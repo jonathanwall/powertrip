@@ -21,7 +21,7 @@ class ModQueueStream(commands.Cog):
     async def stream(self):
         discord_queue = {}
         try:
-            channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
+            channel = self.bot.get_channel(int(os.environ["PT_QUEUE_CHANNEL"]))
             async for message in channel.history():
                 if message.author == self.bot.user:
                     try:
@@ -64,9 +64,9 @@ class ModQueueStream(commands.Cog):
     async def before_stream(self):
         await self.bot.wait_until_ready()
         try:
-            channel = self.bot.get_channel(int(os.environ["pt_queue_channel"]))
+            channel = self.bot.get_channel(int(os.environ["PT_QUEUE_CHANNEL"]))
         except KeyError:
-            log.critical("Enviroment variable pt_queue_channel is not set.")
+            log.critical("Enviroment variable PT_QUEUE_CHANNEL is not set.")
             os._exit(0)
         try:
             await channel.purge()

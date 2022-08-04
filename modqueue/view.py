@@ -22,7 +22,7 @@ class View(discord.ui.View):
 
     async def log_interaction(self, interaction: Interaction) -> None:
         try:
-            channel = interaction.guild.get_channel(int(os.environ["pt_log_channel"]))
+            channel = interaction.guild.get_channel(int(os.environ["PT_LOG_CHANNEL"]))
         except AttributeError:
             return
 
@@ -76,8 +76,8 @@ class RemoveButton(discord.ui.Button):
         self.view.add_item(ReasonSelect(options=reasons))
 
         durations = (
-            os.environ["pt_ban_durations"].split(",")
-            if "pt_ban_durations" in os.environ
+            os.environ["PT_BAN_DURATIONS"].split(",")
+            if "PT_BAN_DURATIONS" in os.environ
             else [3, 7, 28]
         )
         bans = [discord.SelectOption(label="Don't Ban", value="None", default=True)]
