@@ -45,11 +45,14 @@ class Embed(discord.Embed):
                 except KeyError:
                     pass
 
+        author_field_value = f"[{item.author}](https://www.reddit.com/u/{item.author})"
+        if hasattr(item.author, "total_karma"):
+            author_field_value += f" \n **Karma** {item.author.total_karma}"
+        if hasattr(item.author, "created_utc"):
+            author_field_value += f" \n **Created** {datetime.fromtimestamp(item.author.created_utc).strftime('%m/%d/%Y')}"
         self.add_field(
             name="Author",
-            value=f"[{item.author}](https://www.reddit.com/u/{item.author})"
-            + f" \n **Karma** {item.author.total_karma}"
-            + f" \n **Created** {datetime.fromtimestamp(item.author.created_utc).strftime('%m/%d/%Y')}",
+            value=author_field_value,
             inline=False,
         )
         if item.user_reports or item.mod_reports:
